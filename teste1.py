@@ -42,8 +42,8 @@ with st.form(key="formulario"):
     email_destino = st.text_input("Digite seu email para receber as respostas:")
     
     # Configurações do email (para ser preenchido com suas credenciais)
-    email_remetente = 'cydy.potter@gmail.com'
-    senha_remetente = 'daom kmgv lbnx syxb'
+    email_remetente = st.secrets["email"]["sender"]
+    senha_remetente = st.secrets["email"]["password"]
     
     # Botão de envio
     submitted = st.form_submit_button("Enviar Respostas")
