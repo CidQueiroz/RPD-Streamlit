@@ -61,6 +61,7 @@ def ler_respostas_sheets():
         df = df.dropna(how="all")  # Remove linhas completamente vazias
         return df
     except Exception:
+        st.error(f"Erro ao acessar o Google Sheets: {e}")
         return pd.DataFrame(columns=[
             "Data/Hora",
             "Situação",
@@ -136,8 +137,3 @@ elif opcao == "Visualizar respostas":
             file_name="RPD.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
-        "formulario-rpd@silicon-will-425919-n8.iam.gserviceaccount.com"
-
-
-
