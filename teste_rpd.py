@@ -1,35 +1,66 @@
 import streamlit as st
 import pandas as pd
-import os
 from datetime import datetime
+import gspread
+from gspread_dataframe import set_with_dataframe, get_as_dataframe
+import json
 import io
+from google.oauth2.service_account import Credentials  # <-- Novo import
 
-# Caminho do arquivo Excel
-EXCEL_PATH = "RPD.xlsx"
 
-# Função para salvar respostas no Excel
-def salvar_resposta_excel(datahora, situacao, pensamentos, emocao, conclusao, resultado):
-    nova_resposta = {
+# Autenticação com Google Sheets
+def autenticar_gspread():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds_dict = json.loads(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+    client = gspread.authorize(creds)
+    return client
+
+# Nome da planilha e aba
+SHEET_NAME = "RPD"
+WORKSHEET_NAME = "Respostas"
+
+# Função para salvar respostas no Google Sheets
+def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+    except Exception:
+        st.error("Não foi possível abrir a planilha. Verifique se compartilhou com o e-mail do serviço.")
+        return
+    try:
+        worksheet = sheet.worksheet(WORKSHEET_NAME)
+    except Exception:
+        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="1000", cols="10")
+        worksheet.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
+    df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+    nova_resposta = pd.DataFrame([{
         "Data/Hora": datahora,
         "Situação": situacao,
         "Pensamentos automáticos": pensamentos,
         "Emoção": emocao,
         "Conclusão": conclusao,
         "Resultado": resultado
-    }
-    if os.path.exists(EXCEL_PATH):
-        df = pd.read_excel(EXCEL_PATH)
-        df = pd.concat([df, pd.DataFrame([nova_resposta])], ignore_index=True)
-    else:
-        df = pd.DataFrame([nova_resposta])
-    df.to_excel(EXCEL_PATH, index=False)
+    }])
+    df = pd.concat([df, nova_resposta], ignore_index=True)
+    worksheet.clear()
+    set_with_dataframe(worksheet, df)
 
 
-# Função para ler respostas do Excel
-def ler_respostas_excel():
-    if os.path.exists(EXCEL_PATH):
-        return pd.read_excel(EXCEL_PATH)
-    else:
+
+# Função para ler respostas do Google Sheets
+def ler_respostas_sheets():
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet(WORKSHEET_NAME)
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        df = df.dropna(how="all")  # Remove linhas completamente vazias
+        return df
+    except Exception:
         return pd.DataFrame(columns=[
             "Data/Hora",
             "Situação",
@@ -78,7 +109,7 @@ if opcao == "Responder perguntas":
 
     if submitted:
         datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
-        salvar_resposta_excel(datahora, situacao, pensamentos, emocao, conclusao, resultado)
+        salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado)
         st.success("Respostas salvas com sucesso no Excel!")
         st.subheader("Resumo das respostas:")
         st.write(f"**Data/Hora:** {datahora}")
@@ -90,7 +121,7 @@ if opcao == "Responder perguntas":
 
 elif opcao == "Visualizar respostas":
     st.title("Respostas já registradas")
-    df_respostas = ler_respostas_excel()
+    df_respostas = ler_respostas_sheets()
     if df_respostas.empty:
         st.info("Nenhuma resposta registrada ainda.")
     else:
@@ -105,6 +136,8 @@ elif opcao == "Visualizar respostas":
             file_name="RPD.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+        "formulario-rpd@silicon-will-425919-n8.iam.gserviceaccount.com"
 
 
 
