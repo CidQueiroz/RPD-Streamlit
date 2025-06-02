@@ -127,13 +127,11 @@ elif opcao == "Visualizar respostas":
         st.info("Nenhuma resposta registrada ainda.")
     else:
         st.dataframe(df_respostas)
-        # Salva o Excel em memória para download
-        buffer = io.BytesIO()
-        df_respostas.to_excel(buffer, index=False, engine='openpyxl')
-        buffer.seek(0)
+        # Salva o CSV em memória para download
+        csv = df_respostas.to_csv(index=False).encode("utf-8")
         st.download_button(
-            label="Baixar todas as respostas em Excel",
-            data=buffer,
-            file_name="RPD.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            label="Baixar todas as respostas em CSV",
+            data=csv,
+            file_name="RPD.csv",
+            mime="text/csv"
         )
