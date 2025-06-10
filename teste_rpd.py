@@ -19,10 +19,13 @@ def autenticar_usuario(usuario, senha):
             (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
         ]
         if not usuario_encontrado.empty:
-            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']
-            return usuario_encontrado.iloc[0]['nome']
+            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']  # login (ex: admin, usuario1)
+            st.session_state.nome_usuario = usuario_encontrado.iloc[0]['nome']       # nome para exibir (ex: Admin, Usuário1)
+            st.session_state.usuario_autenticado = True
+            st.success(f"Bem-vindo, {st.session_state.nome_usuario}!")
+            st.rerun()
         else:
-            return None
+            st.error("Usuário ou senha incorretos.")
     except Exception as e:
         st.error(f"Erro ao acessar a aba de usuários: {e}")
         return None
@@ -101,11 +104,10 @@ if not st.session_state.usuario_autenticado:
     senha = st.text_input("Senha", type="password")
     if st.button("Entrar"):
         nome = autenticar_usuario(usuario, senha)
-        if not usuario_encontrado.empty:
-            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']  # login (ex: admin, usuario1)
-            st.session_state.nome_usuario = usuario_encontrado.iloc[0]['nome']       # nome para exibir (ex: Admin, Usuário1)
+        if nome:
             st.session_state.usuario_autenticado = True
-            st.success(f"Bem-vindo, {st.session_state.nome_usuario}!")
+            st.session_state.nome_usuario = nome
+            st.success(f"Bem-vindo, {nome}!")
             st.rerun()
         else:
             st.error("Usuário ou senha incorretos.")
@@ -165,10 +167,14 @@ if opcao == "Responder perguntas":
         st.write(f"**Conclusão:** {conclusao}")
         st.write(f"**Resultado:** {resultado}")
 
-elif opcao == "Visualizar respostas":
-    st.title("Respostas já registradas")
+    elif opcao == "Visualizar respostas":
+        st.title("Respostas já registradas")
     # Se for admin, mostra painel para escolher aba/usuário
-    if st.session_state.nome_usuario == "admin":
+    elif opcao == "Visualizar respostas":
+        st.title("Respostas já registradas")
+    # Se for admin, mostra painel para escolher aba/usuário
+    if st.session_state.usuario_logado == "admin":
+        # admin pode escolher qualquer aba
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
         abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios"]]
@@ -176,6 +182,8 @@ elif opcao == "Visualizar respostas":
         df_respostas = ler_respostas_sheets(aba_escolhida)
         st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
     else:
+        df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
+    
         df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
     
     if df_respostas.empty:
