@@ -19,6 +19,7 @@ def autenticar_usuario(usuario, senha):
             (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
         ]
         if not usuario_encontrado.empty:
+            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']
             return usuario_encontrado.iloc[0]['nome']
         else:
             return None
@@ -44,7 +45,7 @@ WORKSHEET_NAME = "Respostas"
 # Função para salvar respostas no Google Sheets
 def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario):
     client = autenticar_gspread()
-    aba_destino = "Respostas" if usuario == "Admin" else usuario
+    aba_destino = "Respostas" if usuario == "admin" else usuario
     try:
         sheet = client.open(SHEET_NAME)
     except Exception:
@@ -100,10 +101,11 @@ if not st.session_state.usuario_autenticado:
     senha = st.text_input("Senha", type="password")
     if st.button("Entrar"):
         nome = autenticar_usuario(usuario, senha)
-        if nome:
+        if not usuario_encontrado.empty:
+            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']  # login (ex: admin, usuario1)
+            st.session_state.nome_usuario = usuario_encontrado.iloc[0]['nome']       # nome para exibir (ex: Admin, Usuário1)
             st.session_state.usuario_autenticado = True
-            st.session_state.nome_usuario = nome
-            st.success(f"Bem-vindo, {nome}!")
+            st.success(f"Bem-vindo, {st.session_state.nome_usuario}!")
             st.rerun()
         else:
             st.error("Usuário ou senha incorretos.")
@@ -166,7 +168,7 @@ if opcao == "Responder perguntas":
 elif opcao == "Visualizar respostas":
     st.title("Respostas já registradas")
     # Se for admin, mostra painel para escolher aba/usuário
-    if st.session_state.nome_usuario == "Admin":
+    if st.session_state.nome_usuario == "admin":
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
         abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios"]]
