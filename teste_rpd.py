@@ -101,7 +101,7 @@ if not st.session_state.usuario_autenticado:
             st.session_state.usuario_autenticado = True
             st.session_state.nome_usuario = nome
             st.success(f"Bem-vindo, {nome}!")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Usuário ou senha incorretos.")
     st.stop()
