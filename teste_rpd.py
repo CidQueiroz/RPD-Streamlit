@@ -4,9 +4,27 @@ from datetime import datetime
 import gspread
 from gspread_dataframe import set_with_dataframe, get_as_dataframe
 import json
-import io
-from google.oauth2.service_account import Credentials  # <-- Novo import
+from google.oauth2.service_account import Credentials
 
+
+def autenticar_usuario(usuario, senha):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet("Usuarios")
+        df_usuarios = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        df_usuarios = df_usuarios.dropna(how="all")
+        # Procura usuário e senha
+        usuario_encontrado = df_usuarios[
+            (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
+        ]
+        if not usuario_encontrado.empty:
+            return usuario_encontrado.iloc[0]['nome']
+        else:
+            return None
+    except Exception as e:
+        st.error(f"Erro ao acessar a aba de usuários: {e}")
+        return None
 
 # Autenticação com Google Sheets
 def autenticar_gspread():
@@ -49,8 +67,6 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     worksheet.clear()
     set_with_dataframe(worksheet, df)
 
-
-
 # Função para ler respostas do Google Sheets
 def ler_respostas_sheets():
     client = autenticar_gspread()
@@ -71,6 +87,26 @@ def ler_respostas_sheets():
             "Resultado"
         ])
 
+if "usuario_autenticado" not in st.session_state:
+    st.session_state.usuario_autenticado = False
+    st.session_state.nome_usuario = ""
+
+if not st.session_state.usuario_autenticado:
+    st.title("Login")
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        nome = autenticar_usuario(usuario, senha)
+        if nome:
+            st.session_state.usuario_autenticado = True
+            st.session_state.nome_usuario = nome
+            st.success(f"Bem-vindo, {nome}!")
+            st.experimental_rerun()
+        else:
+            st.error("Usuário ou senha incorretos.")
+    st.stop()
+else:
+    st.sidebar.write(f"Usuário: {st.session_state.nome_usuario}")
 
 # Menu lateral
 st.sidebar.title("Menu")
