@@ -69,7 +69,8 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     set_with_dataframe(worksheet, df)
 
 
-# Função para ler respostas do Google Sheetsdef ler_respostas_sheets(aba_destino):
+# Função para ler respostas do Google Sheets
+def ler_respostas_sheets(aba_destino):
     client = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
@@ -87,7 +88,7 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
             "Conclusão",
             "Resultado"
         ])
-
+    
 # Configuração inicial do Streamlit
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = False
