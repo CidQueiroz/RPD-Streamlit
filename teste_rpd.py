@@ -42,17 +42,18 @@ SHEET_NAME = "RPD"
 WORKSHEET_NAME = "Respostas"
 
 # Função para salvar respostas no Google Sheets
-def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado):
+def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario):
     client = autenticar_gspread()
+    aba_destino = "Respostas" if usuario == "Admin" else usuario
     try:
         sheet = client.open(SHEET_NAME)
     except Exception:
         st.error("Não foi possível abrir a planilha. Verifique se compartilhou com o e-mail do serviço.")
         return
     try:
-        worksheet = sheet.worksheet(WORKSHEET_NAME)
+        worksheet = sheet.worksheet(aba_destino)
     except Exception:
-        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="1000", cols="10")
+        worksheet = sheet.add_worksheet(title=aba_destino, rows="1000", cols="10")
         worksheet.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
     df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
     nova_resposta = pd.DataFrame([{
@@ -67,17 +68,17 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     worksheet.clear()
     set_with_dataframe(worksheet, df)
 
-# Função para ler respostas do Google Sheets
-def ler_respostas_sheets():
+
+# Função para ler respostas do Google Sheetsdef ler_respostas_sheets(aba_destino):
     client = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
-        worksheet = sheet.worksheet(WORKSHEET_NAME)
+        worksheet = sheet.worksheet(aba_destino)
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
-        df = df.dropna(how="all")  # Remove linhas completamente vazias
+        df = df.dropna(how="all")
         return df
-    except Exception:
-        st.error(f"Erro ao acessar o Google Sheets: {e}")
+    except Exception as e:
+        st.error(f"Erro ao acessar a aba '{aba_destino}': {e}")
         return pd.DataFrame(columns=[
             "Data/Hora",
             "Situação",
@@ -87,6 +88,7 @@ def ler_respostas_sheets():
             "Resultado"
         ])
 
+# Configuração inicial do Streamlit
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = False
     st.session_state.nome_usuario = ""
@@ -107,6 +109,10 @@ if not st.session_state.usuario_autenticado:
     st.stop()
 else:
     st.sidebar.write(f"Usuário: {st.session_state.nome_usuario}")
+    if st.sidebar.button("Sair"):
+        st.session_state.usuario_autenticado = False
+        st.session_state.nome_usuario = ""
+        st.rerun()
 
 # Menu lateral
 st.sidebar.title("Menu")
@@ -146,7 +152,7 @@ if opcao == "Responder perguntas":
 
     if submitted:
         datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
-        salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado)
+        salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.nome_usuario)
         st.success("Respostas salvas com sucesso no Excel!")
         st.subheader("Resumo das respostas:")
         st.write(f"**Data/Hora:** {datahora}")
@@ -158,7 +164,17 @@ if opcao == "Responder perguntas":
 
 elif opcao == "Visualizar respostas":
     st.title("Respostas já registradas")
-    df_respostas = ler_respostas_sheets()
+    # Se for admin, mostra painel para escolher aba/usuário
+    if st.session_state.nome_usuario == "Admin":
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios"]]
+        aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
+        df_respostas = ler_respostas_sheets(aba_escolhida)
+        st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
+    else:
+        df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
+    
     if df_respostas.empty:
         st.info("Nenhuma resposta registrada ainda.")
     else:
