@@ -14,16 +14,18 @@ def autenticar_usuario(usuario, senha):
         worksheet = sheet.worksheet("Usuarios")
         df_usuarios = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         df_usuarios = df_usuarios.dropna(how="all")
+        
         # Procura usuário e senha
         usuario_encontrado = df_usuarios[
             (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
         ]
         if not usuario_encontrado.empty:
-            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']  # login (ex: admin, usuario1)
-            st.session_state.nome_usuario = usuario_encontrado.iloc[0]['nome']       # nome para exibir (ex: Admin, Usuário1)
+            st.session_state.usuario_logado = usuario_encontrado.iloc[0]['usuario']
+            st.session_state.nome_usuario = usuario_encontrado.iloc[0]['nome']
             st.session_state.usuario_autenticado = True
             st.success(f"Bem-vindo, {st.session_state.nome_usuario}!")
             st.rerun()
+            return st.session_state.nome_usuario
         else:
             st.error("Usuário ou senha incorretos.")
     except Exception as e:
@@ -183,9 +185,7 @@ if opcao == "Responder perguntas":
         st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
     else:
         df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
-    
-        df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
-    
+
     if df_respostas.empty:
         st.info("Nenhuma resposta registrada ainda.")
     else:
