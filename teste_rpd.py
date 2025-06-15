@@ -240,7 +240,7 @@ elif opcao == "Visualizar respostas":
         df_respostas = ler_respostas_sheets(aba_escolhida)
         st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
     else:
-        df_respostas = ler_respostas_sheets(st.session_state.nome_usuario)
+        df_respostas = ler_respostas_sheets(st.session_state.usuario_logado)
 
     if df_respostas.empty:
         st.info("Nenhuma resposta registrada ainda.")
