@@ -247,9 +247,7 @@ elif opcao == "Visualizar respostas":
     if df_respostas.empty:
         st.info("Nenhuma resposta registrada ainda.")
     else:
-        st.write(
-            df_respostas.style.set_properties(**{'white-space': 'pre-wrap', 'width': '300px'})
-        )
+        st.dataframe(df_respostas, use_container_width=True, hide_index=True)
         csv = df_respostas.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Baixar todas as respostas em CSV",
