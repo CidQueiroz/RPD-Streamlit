@@ -8,7 +8,7 @@ from google.oauth2.service_account import Credentials
 
 
 def autenticar_usuario(usuario, senha):
-    pclient = autenticar_gspread()
+    client = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
         worksheet = sheet.worksheet("Usuarios")
