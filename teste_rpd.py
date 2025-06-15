@@ -14,9 +14,13 @@ def autenticar_usuario(usuario, senha):
         worksheet = sheet.worksheet("Usuarios")
         df_usuarios = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         df_usuarios = df_usuarios.dropna(how="all")
-        st.write(df_usuarios)  # <-- Adicione esta linha para depuração
-        
-        # Procura usuário e senha
+        # Converta para string para evitar problemas de tipo
+        df_usuarios['usuario'] = df_usuarios['usuario'].astype(str).str.strip()
+        df_usuarios['senha'] = df_usuarios['senha'].astype(str).str.strip()
+        usuario = str(usuario).strip()
+        senha = str(senha).strip()
+        st.write(df_usuarios)  # Para depuração
+
         usuario_encontrado = df_usuarios[
             (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
         ]
@@ -170,14 +174,10 @@ if opcao == "Responder perguntas":
         st.write(f"**Conclusão:** {conclusao}")
         st.write(f"**Resultado:** {resultado}")
 
-    elif opcao == "Visualizar respostas":
-        st.title("Respostas já registradas")
-    # Se for admin, mostra painel para escolher aba/usuário
-    elif opcao == "Visualizar respostas":
-        st.title("Respostas já registradas")
+elif opcao == "Visualizar respostas":
+    st.title("Respostas já registradas")
     # Se for admin, mostra painel para escolher aba/usuário
     if st.session_state.usuario_logado == "admin":
-        # admin pode escolher qualquer aba
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
         abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios"]]
@@ -191,7 +191,6 @@ if opcao == "Responder perguntas":
         st.info("Nenhuma resposta registrada ainda.")
     else:
         st.dataframe(df_respostas)
-        # Salva o CSV em memória para download
         csv = df_respostas.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Baixar todas as respostas em CSV",
