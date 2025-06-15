@@ -8,12 +8,13 @@ from google.oauth2.service_account import Credentials
 
 
 def autenticar_usuario(usuario, senha):
-    client = autenticar_gspread()
+    pclient = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
         worksheet = sheet.worksheet("Usuarios")
         df_usuarios = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         df_usuarios = df_usuarios.dropna(how="all")
+        st.write(df_usuarios)  # <-- Adicione esta linha para depuração
         
         # Procura usuário e senha
         usuario_encontrado = df_usuarios[
