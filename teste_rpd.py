@@ -80,6 +80,37 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     set_with_dataframe(worksheet, df)
 
 
+def adicionar_usuario(nome, usuario, senha):
+    try:
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        # Adiciona usuário na aba "Usuarios"
+        worksheet_usuarios = sheet.worksheet("Usuarios")
+        df_usuarios = get_as_dataframe(worksheet_usuarios, evaluate_formulas=True, header=0)
+        df_usuarios = df_usuarios.dropna(how="all")
+        # Verifica se usuário já existe
+        if usuario in df_usuarios['usuario'].astype(str).values:
+            return False
+        nova_linha = pd.DataFrame([{
+            "usuario": str(usuario).strip(),
+            "senha": str(senha).strip(),
+            "nome": str(nome).strip()
+        }])
+        df_usuarios = pd.concat([df_usuarios, nova_linha], ignore_index=True)
+        worksheet_usuarios.clear()
+        set_with_dataframe(worksheet_usuarios, df_usuarios)
+        # Cria nova aba para o usuário
+        try:
+            sheet.add_worksheet(title=usuario, rows="1000", cols="10")
+            ws_novo = sheet.worksheet(usuario)
+            ws_novo.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
+        except Exception:
+            pass  # Se já existir, ignora
+        return True
+    except Exception as e:
+        st.error(f"Erro ao adicionar usuário: {e}")
+        return False
+
 # Função para ler respostas do Google Sheets
 def ler_respostas_sheets(aba_destino):
     client = autenticar_gspread()
@@ -118,6 +149,39 @@ if not st.session_state.usuario_autenticado:
             st.rerun()
         else:
             st.error("Usuário ou senha incorretos.")
+    st.stop()
+if not st.session_state.usuario_autenticado:
+    st.title("Login")
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        nome = autenticar_usuario(usuario, senha)
+        if nome:
+            st.session_state.usuario_autenticado = True
+            st.session_state.nome_usuario = nome
+            st.success(f"Bem-vindo, {nome}!")
+            st.rerun()
+        else:
+            st.error("Usuário ou senha incorretos.")
+
+    st.markdown("---")
+    st.subheader("Novo por aqui? Cadastre-se!")
+    if st.button("Adicionar usuário"):
+        st.session_state.mostrar_cadastro = True
+
+    if st.session_state.get("mostrar_cadastro", False):
+        with st.form("form_cadastro"):
+            novo_nome = st.text_input("Nome completo")
+            novo_usuario = st.text_input("Novo usuário")
+            nova_senha = st.text_input("Nova senha", type="password")
+            cadastrar = st.form_submit_button("Cadastrar")
+            if cadastrar:
+                sucesso = adicionar_usuario(novo_nome, novo_usuario, nova_senha)
+                if sucesso:
+                    st.success("Usuário cadastrado com sucesso! Faça login.")
+                    st.session_state.mostrar_cadastro = False
+                else:
+                    st.error("Erro ao cadastrar usuário. Tente outro nome de usuário.")
     st.stop()
 else:
     st.sidebar.write(f"Usuário: {st.session_state.nome_usuario}")
