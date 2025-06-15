@@ -154,10 +154,13 @@ if not st.session_state.usuario_autenticado:
 
     st.markdown("---")
     st.subheader("Novo por aqui? Cadastre-se!")
+
+    # O botão deve aparecer sempre
     if st.button("Adicionar usuário"):
         st.session_state.mostrar_cadastro = True
 
-    if st.session_state.mostrar_cadastro:
+    # O formulário só aparece se mostrar_cadastro for True
+    if st.session_state.get("mostrar_cadastro", False):
         with st.form("form_cadastro"):
             novo_nome = st.text_input("Nome completo")
             novo_usuario = st.text_input("Novo usuário")
