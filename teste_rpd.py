@@ -53,9 +53,9 @@ SHEET_NAME = "RPD"
 WORKSHEET_NAME = "Respostas"
 
 # Função para salvar respostas no Google Sheets
-def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario):
+def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario_login):
     client = autenticar_gspread()
-    aba_destino = "Respostas" if usuario == "admin" else usuario
+    aba_destino = "Respostas" if usuario_login == "admin" else usuario_login
     try:
         sheet = client.open(SHEET_NAME)
     except Exception:
@@ -219,7 +219,9 @@ if opcao == "Responder perguntas":
 
     if submitted:
         datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
-        salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.nome_usuario)
+        salvar_resposta_sheets(
+            datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.usuario_logado
+        )
         st.success("Respostas salvas com sucesso no Excel!")
         st.subheader("Resumo das respostas:")
         st.write(f"**Data/Hora:** {datahora}")
