@@ -84,15 +84,15 @@ def adicionar_usuario(nome, usuario, senha):
     try:
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
-        # Adiciona usuário na aba "Usuarios"
         worksheet_usuarios = sheet.worksheet("Usuarios")
         df_usuarios = get_as_dataframe(worksheet_usuarios, evaluate_formulas=True, header=0)
         df_usuarios = df_usuarios.dropna(how="all")
+        usuario = str(usuario).strip()  # <-- Garante que não tem espaço
         # Verifica se usuário já existe
         if usuario in df_usuarios['usuario'].astype(str).values:
             return False
         nova_linha = pd.DataFrame([{
-            "usuario": str(usuario).strip(),
+            "usuario": usuario,
             "senha": str(senha).strip(),
             "nome": str(nome).strip()
         }])
@@ -104,8 +104,8 @@ def adicionar_usuario(nome, usuario, senha):
             sheet.add_worksheet(title=usuario, rows="1000", cols="10")
             ws_novo = sheet.worksheet(usuario)
             ws_novo.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
-        except Exception:
-            pass  # Se já existir, ignora
+        except Exception as e:
+            st.warning(f"Aviso ao criar aba do usuário: {e}")
         return True
     except Exception as e:
         st.error(f"Erro ao adicionar usuário: {e}")
