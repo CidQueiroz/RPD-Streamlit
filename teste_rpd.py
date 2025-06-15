@@ -110,7 +110,7 @@ def adicionar_usuario(nome, usuario, senha):
     except Exception as e:
         st.error(f"Erro ao adicionar usuário: {e}")
         return False
-
+        
 # Função para ler respostas do Google Sheets
 def ler_respostas_sheets(aba_destino):
     client = autenticar_gspread()
