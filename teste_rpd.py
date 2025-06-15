@@ -135,21 +135,9 @@ def ler_respostas_sheets(aba_destino):
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = False
     st.session_state.nome_usuario = ""
+if "mostrar_cadastro" not in st.session_state:
+    st.session_state.mostrar_cadastro = False
 
-if not st.session_state.usuario_autenticado:
-    st.title("Login")
-    usuario = st.text_input("Usuário")
-    senha = st.text_input("Senha", type="password")
-    if st.button("Entrar"):
-        nome = autenticar_usuario(usuario, senha)
-        if nome:
-            st.session_state.usuario_autenticado = True
-            st.session_state.nome_usuario = nome
-            st.success(f"Bem-vindo, {nome}!")
-            st.rerun()
-        else:
-            st.error("Usuário ou senha incorretos.")
-    st.stop()
 if not st.session_state.usuario_autenticado:
     st.title("Login")
     usuario = st.text_input("Usuário")
@@ -169,7 +157,7 @@ if not st.session_state.usuario_autenticado:
     if st.button("Adicionar usuário"):
         st.session_state.mostrar_cadastro = True
 
-    if st.session_state.get("mostrar_cadastro", False):
+    if st.session_state.mostrar_cadastro:
         with st.form("form_cadastro"):
             novo_nome = st.text_input("Nome completo")
             novo_usuario = st.text_input("Novo usuário")
