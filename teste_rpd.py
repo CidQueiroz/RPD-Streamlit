@@ -265,7 +265,7 @@ else:
 # Menu lateral
 st.sidebar.title("Menu")
 opcoes_menu = ["Responder perguntas", "Visualizar respostas", "Estoque"]
-if st.session_state.usuario_logado == "admin":
+if st.session_state.usuario_logado in ["cid", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
@@ -318,7 +318,7 @@ if opcao == "Responder perguntas":
 elif opcao == "Visualizar respostas":
     st.title("Respostas já registradas")
     # Se for admin, mostra painel para escolher aba/usuário
-    if st.session_state.usuario_logado == "admin":
+    if st.session_state.usuario_logado in ["cid", "cleo"]:
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
         abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque", "Vendas"]]
@@ -344,7 +344,7 @@ elif opcao == "Estoque":
     st.title("Controle de Estoque")
     df_estoque = ler_estoque_sheets()
 
-    if st.session_state.usuario_logado == "admin":
+    if st.session_state.usuario_logado in ["cid", "cleo"]:
         st.subheader("Adicionar Novo Item ao Estoque")
         with st.form("form_add_item"):
             novo_item = st.text_input("Nome do Item (camisa, pulseira, etc.)")
@@ -393,7 +393,7 @@ elif opcao == "Estoque":
 
 elif opcao == "Relatório de Vendas":
     st.title("Relatório de Vendas")
-    if st.session_state.usuario_logado == "admin":
+    if st.session_state.usuario_logado in ["cid", "cleo"]:
         client = autenticar_gspread()
         try:
             sheet = client.open(SHEET_NAME)
