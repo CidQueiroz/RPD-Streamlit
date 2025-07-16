@@ -425,6 +425,22 @@ elif opcao == "Relatório de Vendas":
                 total_arrecadado = pd.to_numeric(df_filtrado['Preço Total']).sum()
                 st.metric(label="Total Arrecadado (filtrado)", value=f"R$ {total_arrecadado:.2f}")
 
+                st.subheader("Comissão do Dia")
+                comissoes = {
+                    "cid": 0.30,
+                    "cleo": 0.20,
+                    "quiopa": 0.15,
+                    "zanah": 0.15,
+                    "caixa": 0.20
+                }
+                data_comissao = []
+                for nome, percentual in comissoes.items():
+                    valor_comissao = total_arrecadado * percentual
+                    data_comissao.append({"Nome": nome, "Percentual": f"{percentual:.0%}", "Valor do Dia": f"R$ {valor_comissao:,.2f}"})
+                
+                df_comissao = pd.DataFrame(data_comissao)
+                st.table(df_comissao)
+
         except gspread.exceptions.WorksheetNotFound:
             st.info("Nenhuma venda registrada ainda.")
         except Exception as e:
