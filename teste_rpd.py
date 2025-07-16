@@ -51,6 +51,7 @@ def autenticar_gspread():
 # Nome da planilha e aba
 SHEET_NAME = "RPD"
 WORKSHEET_NAME = "Respostas"
+WORKSHEET_ESTOQUE = "Estoque"
 
 # Função para salvar respostas no Google Sheets
 def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario_login):
@@ -130,7 +131,59 @@ def ler_respostas_sheets(aba_destino):
             "Conclusão",
             "Resultado"
         ])
-    
+
+# Funções para o estoque
+def ler_estoque_sheets():
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        df = df.dropna(how="all")
+        return df
+    except gspread.exceptions.WorksheetNotFound:
+        # Cria a aba se não existir
+        worksheet = sheet.add_worksheet(title=WORKSHEET_ESTOQUE, rows="1000", cols="10")
+        worksheet.append_row(["Item", "Variação", "Quantidade"])
+        return pd.DataFrame(columns=["Item", "Variação", "Quantidade"])
+    except Exception as e:
+        st.error(f"Erro ao acessar a aba de estoque: {e}")
+        return pd.DataFrame(columns=["Item", "Variação", "Quantidade"])
+
+def adicionar_item_estoque(item, variacao, quantidade):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        
+        # Verifica se o item com a mesma variação já existe
+        if not df[(df['Item'] == item) & (df['Variação'] == variacao)].empty:
+            st.error("Este item com esta variação já existe no estoque.")
+            return
+
+        novo_item = pd.DataFrame([{
+            "Item": item,
+            "Variação": variacao,
+            "Quantidade": quantidade
+        }])
+        df = pd.concat([df, novo_item], ignore_index=True)
+        worksheet.clear()
+        set_with_dataframe(worksheet, df)
+        st.success("Item adicionado ao estoque com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao adicionar item ao estoque: {e}")
+
+def atualizar_estoque_sheets(df_estoque):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
+        worksheet.clear()
+        set_with_dataframe(worksheet, df_estoque)
+    except Exception as e:
+        st.error(f"Erro ao atualizar o estoque: {e}")
+
 # Configuração inicial do Streamlit
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = False
@@ -183,7 +236,8 @@ else:
 
 # Menu lateral
 st.sidebar.title("Menu")
-opcao = st.sidebar.radio("Escolha uma opção:", ["Responder perguntas", "Visualizar respostas"])
+opcoes_menu = ["Responder perguntas", "Visualizar respostas", "Estoque"]
+opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Responder perguntas":
     st.title("Registro RPD")
@@ -237,7 +291,7 @@ elif opcao == "Visualizar respostas":
     if st.session_state.usuario_logado == "admin":
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
-        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios"]]
+        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque"]]
         aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
         df_respostas = ler_respostas_sheets(aba_escolhida)
         st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
@@ -255,3 +309,50 @@ elif opcao == "Visualizar respostas":
             file_name="RPD.csv",
             mime="text/csv"
         )
+
+elif opcao == "Estoque":
+    st.title("Controle de Estoque")
+    df_estoque = ler_estoque_sheets()
+
+    if st.session_state.usuario_logado == "admin":
+        st.subheader("Adicionar Novo Item ao Estoque")
+        with st.form("form_add_item"):
+            novo_item = st.text_input("Nome do Item (camisa, pulseira, etc.)")
+            nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
+            nova_quantidade = st.number_input("Quantidade", min_value=1, step=1)
+            submitted_add = st.form_submit_button("Adicionar Item")
+            if submitted_add:
+                adicionar_item_estoque(novo_item, nova_variacao, nova_quantidade)
+                st.rerun()
+
+    st.subheader("Estoque Atual")
+    if df_estoque.empty:
+        st.info("Nenhum item em estoque.")
+    else:
+        st.dataframe(df_estoque, use_container_width=True, hide_index=True)
+
+    st.subheader("Registrar Venda")
+    if not df_estoque.empty:
+        with st.form("form_venda"):
+            # Combina Item e Variação para a seleção
+            itens_disponiveis = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
+            item_vendido_str = st.selectbox("Selecione o item vendido", itens_disponiveis)
+            quantidade_vendida = st.number_input("Quantidade Vendida", min_value=1, step=1)
+            submitted_venda = st.form_submit_button("Registrar Venda")
+
+            if submitted_venda:
+                # Encontra o item e a variação selecionados
+                item_selecionado, variacao_selecionada = item_vendido_str.split(" - ")
+                
+                # Encontra o índice do item no DataFrame
+                idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0]
+                
+                # Atualiza a quantidade
+                if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
+                    df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida
+                    atualizar_estoque_sheets(df_estoque)
+                    st.success("Venda registrada e estoque atualizado!")
+                    st.rerun()
+                else:
+                    st.error("Quantidade em estoque insuficiente para esta venda.")
+
