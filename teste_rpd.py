@@ -427,18 +427,18 @@ elif opcao == "Relatório de Vendas":
 
                 st.subheader("Comissão do Dia")
                 comissoes = {
-                    "cid": 0.30,
-                    "cleo": 0.20,
-                    "quiopa": 0.15,
-                    "zanah": 0.15,
-                    "caixa": 0.20
+                    "Cid": 0.30,
+                    "Cleo": 0.20,
+                    "Quiópa": 0.15,
+                    "Zanah": 0.15,
+                    "Caixa": 0.20
                 }
                 data_comissao = []
                 for nome, percentual in comissoes.items():
                     valor_comissao = total_arrecadado * percentual
                     data_comissao.append({"Nome": nome, "Percentual": f"{percentual:.0%}", "Valor do Dia": f"R$ {valor_comissao:,.2f}"})
                 
-                df_comissao = pd.DataFrame(data_comissao)
+                df_comissao = pd.DataFrame(data_comissao, hide_index=True)
                 st.table(df_comissao)
 
         except gspread.exceptions.WorksheetNotFound:
