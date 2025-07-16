@@ -438,8 +438,8 @@ elif opcao == "Relatório de Vendas":
                     valor_comissao = total_arrecadado * percentual
                     data_comissao.append({"Nome": nome, "Percentual": f"{percentual:.0%}", "Valor do Dia": f"R$ {valor_comissao:,.2f}"})
                 
-                df_comissao = pd.DataFrame(data_comissao, hide_index=True)
-                st.table(df_comissao)
+                df_comissao = pd.DataFrame(data_comissao)
+                st.dataframe(df_comissao, hide_index=True)
 
         except gspread.exceptions.WorksheetNotFound:
             st.info("Nenhuma venda registrada ainda.")
