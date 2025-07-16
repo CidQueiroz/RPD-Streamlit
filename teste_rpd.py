@@ -264,9 +264,10 @@ else:
 
 # Menu lateral
 st.sidebar.title("Menu")
-opcoes_menu = ["Responder perguntas", "Visualizar respostas", "Estoque"]
+opcoes_menu = ["Estoque"]
 if st.session_state.usuario_logado in ["cid", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
+opcoes_menu.extend(["Responder perguntas", "Visualizar respostas"])
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Responder perguntas":
