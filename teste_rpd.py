@@ -390,7 +390,12 @@ elif opcao == "Estoque":
     if df_estoque.empty:
         st.info("Nenhum item em estoque.")
     else:
-        st.table(df_estoque)
+        df_estoque_display = df_estoque.copy()
+        df_estoque_display['Quantidade'] = pd.to_numeric(df_estoque_display['Quantidade']).astype(int)
+        df_estoque_display['Preço'] = pd.to_numeric(df_estoque_display['Preço']).map('R$ {:,.2f}'.format)
+        # Calcula a altura dinamicamente: 35px por linha + 35px para o cabeçalho
+        height = (len(df_estoque_display) + 1) * 35
+        st.dataframe(df_estoque_display, height=height, hide_index=True)
 
 elif opcao == "Relatório de Vendas":
     st.title("Relatório de Vendas")
