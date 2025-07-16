@@ -52,6 +52,7 @@ def autenticar_gspread():
 SHEET_NAME = "RPD"
 WORKSHEET_NAME = "Respostas"
 WORKSHEET_ESTOQUE = "Estoque"
+WORKSHEET_VENDAS = "Vendas"
 
 # Função para salvar respostas no Google Sheets
 def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario_login):
@@ -144,13 +145,13 @@ def ler_estoque_sheets():
     except gspread.exceptions.WorksheetNotFound:
         # Cria a aba se não existir
         worksheet = sheet.add_worksheet(title=WORKSHEET_ESTOQUE, rows="1000", cols="10")
-        worksheet.append_row(["Item", "Variação", "Quantidade"])
-        return pd.DataFrame(columns=["Item", "Variação", "Quantidade"])
+        worksheet.append_row(["Item", "Variação", "Quantidade", "Preço"])
+        return pd.DataFrame(columns=["Item", "Variação", "Quantidade", "Preço"])
     except Exception as e:
         st.error(f"Erro ao acessar a aba de estoque: {e}")
-        return pd.DataFrame(columns=["Item", "Variação", "Quantidade"])
+        return pd.DataFrame(columns=["Item", "Variação", "Quantidade", "Preço"])
 
-def adicionar_item_estoque(item, variacao, quantidade):
+def adicionar_item_estoque(item, variacao, quantidade, preco):
     client = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
@@ -165,7 +166,8 @@ def adicionar_item_estoque(item, variacao, quantidade):
         novo_item = pd.DataFrame([{
             "Item": item,
             "Variação": variacao,
-            "Quantidade": quantidade
+            "Quantidade": quantidade,
+            "Preço": preco
         }])
         df = pd.concat([df, novo_item], ignore_index=True)
         worksheet.clear()
@@ -183,6 +185,32 @@ def atualizar_estoque_sheets(df_estoque):
         set_with_dataframe(worksheet, df_estoque)
     except Exception as e:
         st.error(f"Erro ao atualizar o estoque: {e}")
+
+def registrar_venda_sheets(datahora, item, variacao, quantidade, preco_unitario, preco_total, vendedor):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        try:
+            worksheet = sheet.worksheet(WORKSHEET_VENDAS)
+        except gspread.exceptions.WorksheetNotFound:
+            worksheet = sheet.add_worksheet(title=WORKSHEET_VENDAS, rows="1000", cols="10")
+            worksheet.append_row(["Data/Hora", "Item", "Variação", "Quantidade", "Preço Unitário", "Preço Total", "Vendedor"])
+        
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        nova_venda = pd.DataFrame([{
+            "Data/Hora": datahora,
+            "Item": item,
+            "Variação": variacao,
+            "Quantidade": quantidade,
+            "Preço Unitário": preco_unitario,
+            "Preço Total": preco_total,
+            "Vendedor": vendedor
+        }])
+        df = pd.concat([df, nova_venda], ignore_index=True)
+        worksheet.clear()
+        set_with_dataframe(worksheet, df)
+    except Exception as e:
+        st.error(f"Erro ao registrar venda: {e}")
 
 # Configuração inicial do Streamlit
 if "usuario_autenticado" not in st.session_state:
@@ -237,6 +265,8 @@ else:
 # Menu lateral
 st.sidebar.title("Menu")
 opcoes_menu = ["Responder perguntas", "Visualizar respostas", "Estoque"]
+if st.session_state.usuario_logado == "admin":
+    opcoes_menu.append("Relatório de Vendas")
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Responder perguntas":
@@ -291,7 +321,7 @@ elif opcao == "Visualizar respostas":
     if st.session_state.usuario_logado == "admin":
         client = autenticar_gspread()
         sheet = client.open(SHEET_NAME)
-        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque"]]
+        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque", "Vendas"]]
         aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
         df_respostas = ler_respostas_sheets(aba_escolhida)
         st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
@@ -320,9 +350,10 @@ elif opcao == "Estoque":
             novo_item = st.text_input("Nome do Item (camisa, pulseira, etc.)")
             nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
             nova_quantidade = st.number_input("Quantidade", min_value=1, step=1)
+            novo_preco = st.number_input("Preço (R$)", min_value=0.0, format="%.2f")
             submitted_add = st.form_submit_button("Adicionar Item")
             if submitted_add:
-                adicionar_item_estoque(novo_item, nova_variacao, nova_quantidade)
+                adicionar_item_estoque(novo_item, nova_variacao, nova_quantidade, novo_preco)
                 st.rerun()
 
     st.subheader("Estoque Atual")
@@ -349,10 +380,46 @@ elif opcao == "Estoque":
                 
                 # Atualiza a quantidade
                 if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
+                    preco_unitario = df_estoque.loc[idx, 'Preço']
+                    preco_total = quantidade_vendida * preco_unitario
                     df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida
                     atualizar_estoque_sheets(df_estoque)
-                    st.success("Venda registrada e estoque atualizado!")
+                    datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
+                    registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
+                    st.success(f"Venda registrada! Total: R$ {preco_total:.2f}")
                     st.rerun()
                 else:
                     st.error("Quantidade em estoque insuficiente para esta venda.")
+
+elif opcao == "Relatório de Vendas":
+    st.title("Relatório de Vendas")
+    if st.session_state.usuario_logado == "admin":
+        client = autenticar_gspread()
+        try:
+            sheet = client.open(SHEET_NAME)
+            worksheet = sheet.worksheet(WORKSHEET_VENDAS)
+            df_vendas = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+            df_vendas = df_vendas.dropna(how="all")
+            if df_vendas.empty:
+                st.info("Nenhuma venda registrada ainda.")
+            else:
+                # Adiciona o filtro de data
+                data_filtro = st.date_input("Filtrar vendas por dia")
+                if data_filtro:
+                    df_vendas['Data/Hora'] = pd.to_datetime(df_vendas['Data/Hora'], format='%d/%m/%Y  %H:%M:%S')
+                    df_filtrado = df_vendas[df_vendas['Data/Hora'].dt.date == data_filtro]
+                else:
+                    df_filtrado = df_vendas
+
+                st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+                total_arrecadado = pd.to_numeric(df_filtrado['Preço Total']).sum()
+                st.metric(label="Total Arrecadado (filtrado)", value=f"R$ {total_arrecadado:.2f}")
+
+        except gspread.exceptions.WorksheetNotFound:
+            st.info("Nenhuma venda registrada ainda.")
+        except Exception as e:
+            st.error(f"Erro ao ler o relatório de vendas: {e}")
+    else:
+        st.warning("Acesso restrito a administradores.")
+
 
