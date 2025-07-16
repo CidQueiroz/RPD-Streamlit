@@ -356,12 +356,6 @@ elif opcao == "Estoque":
                 adicionar_item_estoque(novo_item, nova_variacao, nova_quantidade, novo_preco)
                 st.rerun()
 
-    st.subheader("Estoque Atual")
-    if df_estoque.empty:
-        st.info("Nenhum item em estoque.")
-    else:
-        st.dataframe(df_estoque, use_container_width=True, hide_index=True)
-
     st.subheader("Registrar Venda")
     if not df_estoque.empty:
         with st.form("form_venda"):
@@ -390,6 +384,12 @@ elif opcao == "Estoque":
                     st.rerun()
                 else:
                     st.error("Quantidade em estoque insuficiente para esta venda.")
+
+    st.subheader("Estoque Atual")
+    if df_estoque.empty:
+        st.info("Nenhum item em estoque.")
+    else:
+        st.dataframe(df_estoque, use_container_width=True)
 
 elif opcao == "Relatório de Vendas":
     st.title("Relatório de Vendas")
