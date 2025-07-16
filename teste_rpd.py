@@ -390,7 +390,7 @@ elif opcao == "Estoque":
     if df_estoque.empty:
         st.info("Nenhum item em estoque.")
     else:
-        st.dataframe(df_estoque, use_container_width=True)
+        st.table(df_estoque)
 
 elif opcao == "Relatório de Vendas":
     st.title("Relatório de Vendas")
