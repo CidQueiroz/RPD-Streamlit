@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import pytz
 import gspread
 from gspread_dataframe import set_with_dataframe, get_as_dataframe
 import json
@@ -307,7 +308,7 @@ if opcao == "Responder perguntas":
         submitted = st.form_submit_button("Enviar Respostas")
 
     if submitted:
-        datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
+        datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
         salvar_resposta_sheets(
             datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.usuario_logado
         )
@@ -383,7 +384,7 @@ elif opcao == "Estoque":
                     preco_total = quantidade_vendida * preco_unitario
                     df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida
                     atualizar_estoque_sheets(df_estoque)
-                    datahora = datetime.now().strftime("%d/%m/%Y  %H:%M:%S")
+                    datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
                     registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
                     st.success(f"Venda registrada! Total: R$ {preco_total:.2f}")
                     st.rerun()
@@ -440,6 +441,15 @@ elif opcao == "Relatório de Vendas":
                 
                 df_comissao = pd.DataFrame(data_comissao)
                 st.dataframe(df_comissao, hide_index=True)
+
+                st.subheader("Itens em Falta ou com Baixo Estoque")
+                df_estoque = ler_estoque_sheets()
+                df_estoque['Quantidade'] = pd.to_numeric(df_estoque['Quantidade'])
+                itens_em_falta = df_estoque[df_estoque['Quantidade'] <= 1]
+                if itens_em_falta.empty:
+                    st.info("Nenhum item com baixo estoque.")
+                else:
+                    st.dataframe(itens_em_falta, hide_index=True)
 
         except gspread.exceptions.WorksheetNotFound:
             st.info("Nenhuma venda registrada ainda.")
