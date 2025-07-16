@@ -158,14 +158,18 @@ def adicionar_item_estoque(item, variacao, quantidade, preco):
         worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         
-        # Verifica se o item com a mesma variação já existe
-        if not df[(df['Item'] == item) & (df['Variação'] == variacao)].empty:
+        # Padroniza para a primeira letra maiúscula
+        item_padronizado = item.strip().capitalize()
+        variacao_padronizada = variacao.strip().capitalize()
+
+        # Verifica se o item com a mesma variação já existe (case-insensitive)
+        if not df[(df['Item'].str.strip().str.capitalize() == item_padronizado) & (df['Variação'].str.strip().str.capitalize() == variacao_padronizada)].empty:
             st.error("Este item com esta variação já existe no estoque.")
             return
 
         novo_item = pd.DataFrame([{
-            "Item": item,
-            "Variação": variacao,
+            "Item": item_padronizado,
+            "Variação": variacao_padronizada,
             "Quantidade": quantidade,
             "Preço": preco
         }])
