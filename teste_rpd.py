@@ -353,13 +353,23 @@ elif opcao == "Estoque":
     if st.session_state.usuario_logado in ["cid", "cleo"]:
         st.subheader("Adicionar Novo Item ao Estoque")
         with st.form("form_add_item"):
-            novo_item = st.text_input("Nome do Item (camisa, pulseira, etc.)")
+            df_estoque = ler_estoque_sheets()
+            itens_existentes = sorted(df_estoque['Item'].unique().tolist())
+            itens_picklist = ["Cadastrar Novo Item..."] + itens_existentes
+            
+            item_selecionado = st.selectbox("Selecione um item ou cadastre um novo", itens_picklist)
+            
+            if item_selecionado == "Cadastrar Novo Item...":
+                novo_item_nome = st.text_input("Nome do Novo Item")
+            else:
+                novo_item_nome = item_selecionado
+
             nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
             nova_quantidade = st.number_input("Quantidade", min_value=1, step=1)
             novo_preco = st.number_input("Preço (R$)", min_value=0.0, format="%.2f")
             submitted_add = st.form_submit_button("Adicionar Item")
             if submitted_add:
-                adicionar_item_estoque(novo_item, nova_variacao, nova_quantidade, novo_preco)
+                adicionar_item_estoque(novo_item_nome, nova_variacao, nova_quantidade, novo_preco)
                 st.rerun()
 
     st.subheader("Registrar Venda")
