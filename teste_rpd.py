@@ -152,34 +152,46 @@ def ler_estoque_sheets():
         st.error(f"Erro ao acessar a aba de estoque: {e}")
         return pd.DataFrame(columns=["Item", "Variação", "Quantidade", "Preço"])
 
-def adicionar_item_estoque(item, variacao, quantidade, preco):
+def adicionar_item_estoque(item, variacao, quantidade, preco=None):
     client = autenticar_gspread()
     try:
         sheet = client.open(SHEET_NAME)
         worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
-        
+        df = df.dropna(how="all")
+
         # Padroniza para a primeira letra maiúscula
         item_padronizado = item.strip().capitalize()
         variacao_padronizada = variacao.strip().capitalize()
 
         # Verifica se o item com a mesma variação já existe (case-insensitive)
-        if not df[(df['Item'].str.strip().str.capitalize() == item_padronizado) & (df['Variação'].str.strip().str.capitalize() == variacao_padronizada)].empty:
-            st.error("Este item com esta variação já existe no estoque.")
-            return
-
-        novo_item = pd.DataFrame([{
-            "Item": item_padronizado,
-            "Variação": variacao_padronizada,
-            "Quantidade": quantidade,
-            "Preço": preco
-        }])
-        df = pd.concat([df, novo_item], ignore_index=True)
+        filtro = (df['Item'].astype(str).str.strip().str.capitalize() == item_padronizado) & \
+                 (df['Variação'].astype(str).str.strip().str.capitalize() == variacao_padronizada)
+        
+        if not df[filtro].empty:
+            # Item e variação existem, incrementar quantidade
+            idx = df[filtro].index[0]
+            df.loc[idx, 'Quantidade'] = pd.to_numeric(df.loc[idx, 'Quantidade']) + quantidade
+            st.success(f"Quantidade de {item_padronizado} - {variacao_padronizada} atualizada para {int(df.loc[idx, 'Quantidade'])}!")
+        else:
+            # Item ou variação não existem, adicionar novo
+            if preco is None:
+                st.error("Preço é obrigatório para novos itens.")
+                return
+            novo_item = pd.DataFrame([{
+                "Item": item_padronizado,
+                "Variação": variacao_padronizada,
+                "Quantidade": quantidade,
+                "Preço": preco
+            }])
+            df = pd.concat([df, novo_item], ignore_index=True)
+            st.success("Novo item adicionado ao estoque com sucesso!")
+        
         worksheet.clear()
         set_with_dataframe(worksheet, df)
-        st.success("Item adicionado ao estoque com sucesso!")
+        
     except Exception as e:
-        st.error(f"Erro ao adicionar item ao estoque: {e}")
+        st.error(f"Erro ao adicionar/atualizar item ao estoque: {e}")
 
 def atualizar_estoque_sheets(df_estoque):
     client = autenticar_gspread()
@@ -351,26 +363,39 @@ elif opcao == "Estoque":
     df_estoque = ler_estoque_sheets()
 
     if st.session_state.usuario_logado in ["cid", "cleo"]:
-        st.subheader("Adicionar Novo Item ao Estoque")
+        st.subheader("Adicionar/Incrementar Estoque")
         with st.form("form_add_item"):
             df_estoque = ler_estoque_sheets()
-            itens_existentes = sorted(df_estoque['Item'].unique().tolist())
-            itens_picklist = ["Cadastrar Novo Item..."] + itens_existentes
             
-            item_selecionado = st.selectbox("Selecione um item ou cadastre um novo", itens_picklist)
-            
-            if item_selecionado == "Cadastrar Novo Item...":
-                novo_item_nome = st.text_input("Nome do Novo Item")
-            else:
-                novo_item_nome = item_selecionado
+            opcao_adicao = st.radio("", ["Adicionar Novo Item", "Incrementar Item Existente"], key="opcao_adicao")
 
-            nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
-            nova_quantidade = st.number_input("Quantidade", min_value=1, step=1)
-            novo_preco = st.number_input("Preço (R$)", min_value=0.0, format="%.2f")
-            submitted_add = st.form_submit_button("Adicionar Item")
-            if submitted_add:
-                adicionar_item_estoque(novo_item_nome, nova_variacao, nova_quantidade, novo_preco)
-                st.rerun()
+            if opcao_adicao == "Adicionar Novo Item":
+                novo_item_nome = st.text_input("Nome do Item")
+                nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
+                nova_quantidade = st.number_input("Quantidade Inicial", min_value=1, step=1)
+                novo_preco = st.number_input("Preço (R$)", min_value=0.0, format="%.2f")
+                submitted_add = st.form_submit_button("Adicionar Novo Item")
+                if submitted_add:
+                    if novo_item_nome and nova_variacao:
+                        adicionar_item_estoque(novo_item_nome, nova_variacao, nova_quantidade, novo_preco)
+                        st.rerun()
+                    else:
+                        st.error("Por favor, preencha o nome do item e a variação.")
+
+            elif opcao_adicao == "Incrementar Item Existente":
+                itens_existentes_com_variacao = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
+                if not itens_existentes_com_variacao:
+                    st.info("Não há itens existentes para incrementar. Adicione um novo item primeiro.")
+                else:
+                    item_para_incrementar_str = st.selectbox("Selecione o item para incrementar", itens_existentes_com_variacao)
+                    quantidade_incrementar = st.number_input("Quantidade a Adicionar", min_value=1, step=1)
+                    submitted_increment = st.form_submit_button("Incrementar Estoque")
+
+                    if submitted_increment:
+                        item_selecionado, variacao_selecionada = item_para_incrementar_str.split(" - ")
+                        # Chamar a função com preco=None, pois não é necessário para incremento
+                        adicionar_item_estoque(item_selecionado, variacao_selecionada, quantidade_incrementar, preco=None)
+                        st.rerun()
 
     st.subheader("Registrar Venda")
     if not df_estoque.empty:
