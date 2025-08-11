@@ -7,6 +7,7 @@ from gspread_dataframe import set_with_dataframe, get_as_dataframe
 from auth import autenticar_usuario, adicionar_usuario
 from estoque import ler_estoque_sheets, adicionar_item_estoque, registrar_venda_sheets, atualizar_estoque_sheets
 from sheets import autenticar_gspread, salvar_resposta_sheets, ler_respostas_sheets
+import rebranding # Importa nosso novo módulo
 
 # Nome da planilha e aba
 SHEET_NAME = "RPD"
@@ -64,25 +65,24 @@ st.sidebar.title("Menu")
 opcoes_menu = ["Estoque"]
 if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
-opcoes_menu.extend(["Responder perguntas", "Visualizar respostas"])
+opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "Painel de Rebranding"])
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Responder perguntas":
-    st.title("Registro RPD")
-    st.write("Preencha as informações abaixo:")
+    st.subheader("Mapeamento e Desarmamento do 'Crítico Interno'")
+    st.markdown("Use esta ferramenta para externalizar os pensamentos que te sabotam.")
 
     with st.form(key="formulario"):
-        situacao = st.text_area(
-            "Situação (Que situação real, fluxo de pensamentos, devaneios ou recordações levaram à emoção desagradável?)"
+        situacao = st.text_area("1. Situação (O que aconteceu?)"
         )
         pensamentos = st.text_area(
-            "Pensamentos automáticos (Quais foram os pensamentos automáticos que passaram pela sua cabeça? Quanto você acredita em cada um deles? (0 a 100%))"
+            "2. Pensamento Automático (O que o 'Crítico Interno' disse?)"
         )
         emocao = st.text_area(
-            "Emoção (Qual foi a emoção que você sentiu? Qual foi a intensidade dessa emoção? (0 a 100%))"
+            "3. Emoção / Sentimento (O que você sentiu? Nota 0-100.)"
         )
         conclusao = st.text_area(
-            "Conclusão (1. Quais são suas respostas racionais aos pensamentos automáticos? Use as perguntas abaixo para compor uma resposta aos pensamentos automáticos. Quanto você acredita em cada resposta? (0 a 100%))"
+            "4. Resposta Adaptativa (Como o 'Porto Seguro' analisaria isso?)"
         )
         resultado = st.text_area(
             "Resultado (Quanto você acredita agora em cada pensamento automático? (0 a 100%) Que emoções você sente agora? Qual a intensidade? (0 a 100%) O que você fará ou fez?)"
@@ -92,7 +92,7 @@ if opcao == "Responder perguntas":
     if submitted:
         datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
         salvar_resposta_sheets(
-            datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.usuario_logado
+            datahora, situacao, pensamentos, emocao, conclusao, 'Retirado', st.session_state.usuario_logado
         )
         st.success("Respostas salvas com sucesso no Excel!")
         st.subheader("Resumo das respostas:")
@@ -101,7 +101,7 @@ if opcao == "Responder perguntas":
         st.write(f"**Pensamentos automáticos:** {pensamentos}")
         st.write(f"**Emoção:** {emocao}")
         st.write(f"**Conclusão:** {conclusao}")
-        st.write(f"**Resultado:** {resultado}")
+        st.write(f"**Resultado:** {'Retirado'}")
 
 elif opcao == "Visualizar respostas":
     st.title("Respostas já registradas")
@@ -254,3 +254,6 @@ elif opcao == "Relatório de Vendas":
             st.error(f"Erro ao ler o relatório de vendas: {e}")
     else:
         st.warning("Acesso restrito a administradores.")
+
+elif opcao == "Painel de Rebranding":
+    rebranding.exibir_painel_rebranding()

@@ -64,3 +64,29 @@ def ler_respostas_sheets(aba_destino):
             "Conclusão",
             "Resultado"
         ])
+
+
+def salvar_consistencia_sheets(data_hoje, atividade, usuario_login):
+    """
+    Salva um novo registro de consistência em uma aba específica do Google Sheets.
+    """
+    client = autenticar_gspread() # Reutiliza sua função de autenticação
+    aba_destino = "D.Bordo" # Nome fixo para a nova aba
+
+    try:
+        sheet = client.open(SHEET_NAME) # Reutiliza o nome da sua planilha principal
+    except Exception as e:
+        st.error(f"Não foi possível abrir a planilha. Erro: {e}")
+        return
+
+    try:
+        worksheet = sheet.worksheet(aba_destino)
+    except gspread.WorksheetNotFound:
+        # Se a aba não existir, cria uma nova com os cabeçalhos corretos
+        worksheet = sheet.add_worksheet(title=aba_destino, rows=1000, cols=3)
+        worksheet.append_row(["Data", "Atividade", "Usuario"])
+        st.toast(f"Aba '{aba_destino}' criada com sucesso.")
+
+    # Adiciona a nova linha de forma eficiente
+    nova_linha = [data_hoje, atividade, usuario_login]
+    worksheet.append_row(nova_linha)
