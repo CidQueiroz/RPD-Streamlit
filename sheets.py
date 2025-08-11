@@ -1,0 +1,66 @@
+import gspread
+from google.oauth2.service_account import Credentials
+import json
+import streamlit as st
+import pandas as pd
+from gspread_dataframe import set_with_dataframe, get_as_dataframe
+
+SHEET_NAME = "RPD"
+WORKSHEET_NAME = "Respostas"
+
+# Autenticação com Google Sheets
+def autenticar_gspread():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+    client = gspread.authorize(creds)
+    return client
+
+# Função para salvar respostas no Google Sheets
+def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario_login):
+    client = autenticar_gspread()
+    aba_destino = "Respostas" if usuario_login == "admin" else usuario_login
+    try:
+        sheet = client.open(SHEET_NAME)
+    except Exception:
+        st.error("Não foi possível abrir a planilha. Verifique se compartilhou com o e-mail do serviço.")
+        return
+    try:
+        worksheet = sheet.worksheet(aba_destino)
+    except Exception:
+        worksheet = sheet.add_worksheet(title=aba_destino, rows="1000", cols="10")
+        worksheet.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
+    df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+    nova_resposta = pd.DataFrame([{
+        "Data/Hora": datahora,
+        "Situação": situacao,
+        "Pensamentos automáticos": pensamentos,
+        "Emoção": emocao,
+        "Conclusão": conclusao,
+        "Resultado": resultado
+    }])
+    df = pd.concat([df, nova_resposta], ignore_index=True)
+    worksheet.clear()
+    set_with_dataframe(worksheet, df)
+
+# Função para ler respostas do Google Sheets
+def ler_respostas_sheets(aba_destino):
+    client = autenticar_gspread()
+    try:
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet(aba_destino)
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        df = df.dropna(how="all")
+        return df
+    except Exception as e:
+        st.error(f"Erro ao acessar a aba '{aba_destino}': {e}")
+        return pd.DataFrame(columns=[
+            "Data/Hora",
+            "Situação",
+            "Pensamentos automáticos",
+            "Emoção",
+            "Conclusão",
+            "Resultado"
+        ])

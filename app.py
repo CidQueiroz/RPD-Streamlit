@@ -1,0 +1,256 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import pytz
+import gspread
+from gspread_dataframe import set_with_dataframe, get_as_dataframe
+from auth import autenticar_usuario, adicionar_usuario
+from estoque import ler_estoque_sheets, adicionar_item_estoque, registrar_venda_sheets, atualizar_estoque_sheets
+from sheets import autenticar_gspread, salvar_resposta_sheets, ler_respostas_sheets
+
+# Nome da planilha e aba
+SHEET_NAME = "RPD"
+WORKSHEET_NAME = "Respostas"
+WORKSHEET_ESTOQUE = "Estoque"
+WORKSHEET_VENDAS = "Vendas"
+
+# Configuração inicial do Streamlit
+if "usuario_autenticado" not in st.session_state:
+    st.session_state.usuario_autenticado = False
+    st.session_state.nome_usuario = ""
+    st.session_state.usuario_logado = ""
+if "mostrar_cadastro" not in st.session_state:
+    st.session_state.mostrar_cadastro = False
+
+if not st.session_state.usuario_autenticado:
+    st.title("Login")
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        if autenticar_usuario(usuario, senha):
+            st.rerun()
+        else:
+            st.error("Usuário ou senha incorretos.")
+
+    st.markdown("---")
+    st.subheader("Novo por aqui? Cadastre-se!")
+
+    if st.button("Adicionar usuário"):
+        st.session_state.mostrar_cadastro = True
+
+    if st.session_state.get("mostrar_cadastro", False):
+        with st.form("form_cadastro"):
+            novo_nome = st.text_input("Nome completo")
+            novo_usuario = st.text_input("Novo usuário")
+            nova_senha = st.text_input("Nova senha", type="password")
+            cadastrar = st.form_submit_button("Cadastrar")
+            if cadastrar:
+                if adicionar_usuario(novo_nome, novo_usuario, nova_senha):
+                    st.success("Usuário cadastrado com sucesso! Faça login.")
+                    st.session_state.mostrar_cadastro = False
+                else:
+                    st.error("Erro ao cadastrar usuário. Tente outro nome de usuário.")
+    st.stop()
+
+st.sidebar.write(f"Usuário: {st.session_state.nome_usuario}")
+if st.sidebar.button("Sair"):
+    st.session_state.usuario_autenticado = False
+    st.session_state.nome_usuario = ""
+    st.session_state.usuario_logado = ""
+    st.rerun()
+
+# Menu lateral
+st.sidebar.title("Menu")
+opcoes_menu = ["Estoque"]
+if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+    opcoes_menu.append("Relatório de Vendas")
+opcoes_menu.extend(["Responder perguntas", "Visualizar respostas"])
+opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
+
+if opcao == "Responder perguntas":
+    st.title("Registro RPD")
+    st.write("Preencha as informações abaixo:")
+
+    with st.form(key="formulario"):
+        situacao = st.text_area(
+            "Situação (Que situação real, fluxo de pensamentos, devaneios ou recordações levaram à emoção desagradável?)"
+        )
+        pensamentos = st.text_area(
+            "Pensamentos automáticos (Quais foram os pensamentos automáticos que passaram pela sua cabeça? Quanto você acredita em cada um deles? (0 a 100%))"
+        )
+        emocao = st.text_area(
+            "Emoção (Qual foi a emoção que você sentiu? Qual foi a intensidade dessa emoção? (0 a 100%))"
+        )
+        conclusao = st.text_area(
+            "Conclusão (1. Quais são suas respostas racionais aos pensamentos automáticos? Use as perguntas abaixo para compor uma resposta aos pensamentos automáticos. Quanto você acredita em cada resposta? (0 a 100%))"
+        )
+        resultado = st.text_area(
+            "Resultado (Quanto você acredita agora em cada pensamento automático? (0 a 100%) Que emoções você sente agora? Qual a intensidade? (0 a 100%) O que você fará ou fez?)"
+        )
+        submitted = st.form_submit_button("Enviar Respostas")
+
+    if submitted:
+        datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
+        salvar_resposta_sheets(
+            datahora, situacao, pensamentos, emocao, conclusao, resultado, st.session_state.usuario_logado
+        )
+        st.success("Respostas salvas com sucesso no Excel!")
+        st.subheader("Resumo das respostas:")
+        st.write(f"**Data/Hora:** {datahora}")
+        st.write(f"**Situação:** {situacao}")
+        st.write(f"**Pensamentos automáticos:** {pensamentos}")
+        st.write(f"**Emoção:** {emocao}")
+        st.write(f"**Conclusão:** {conclusao}")
+        st.write(f"**Resultado:** {resultado}")
+
+elif opcao == "Visualizar respostas":
+    st.title("Respostas já registradas")
+    if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque", "Vendas"]]
+        aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
+        df_respostas = ler_respostas_sheets(aba_escolhida)
+        st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
+    else:
+        df_respostas = ler_respostas_sheets(st.session_state.usuario_logado)
+
+    if df_respostas.empty:
+        st.info("Nenhuma resposta registrada ainda.")
+    else:
+        st.dataframe(df_respostas, use_container_width=True, hide_index=True)
+        csv = df_respostas.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="Baixar todas as respostas em CSV",
+            data=csv,
+            file_name="RPD.csv",
+            mime="text/csv"
+        )
+
+elif opcao == "Estoque":
+    st.title("Controle de Estoque")
+    df_estoque = ler_estoque_sheets()
+
+    if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+        st.subheader("Adicionar/Incrementar Estoque")
+        with st.form("form_add_item"):
+            df_estoque = ler_estoque_sheets()
+            
+            opcao_adicao = st.radio("", ["Adicionar Novo Item", "Incrementar Item Existente"], key="opcao_adicao")
+
+            if opcao_adicao == "Adicionar Novo Item":
+                novo_item_nome = st.text_input("Nome do Item")
+                nova_variacao = st.text_input("Variação (cor, tamanho, etc.)")
+                nova_quantidade = st.number_input("Quantidade Inicial", min_value=1, step=1)
+                novo_preco = st.number_input("Preço (R$)", min_value=0.0, format="%.2f")
+                submitted_add = st.form_submit_button("Adicionar Novo Item")
+                if submitted_add:
+                    if novo_item_nome and nova_variacao:
+                        adicionar_item_estoque(novo_item_nome, nova_variacao, nova_quantidade, novo_preco)
+                        st.rerun()
+                    else:
+                        st.error("Por favor, preencha o nome do item e a variação.")
+
+            elif opcao_adicao == "Incrementar Item Existente":
+                itens_existentes_com_variacao = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
+                if not itens_existentes_com_variacao:
+                    st.info("Não há itens existentes para incrementar. Adicione um novo item primeiro.")
+                else:
+                    item_para_incrementar_str = st.selectbox("Selecione o item para incrementar", itens_existentes_com_variacao)
+                    quantidade_incrementar = st.number_input("Quantidade a Adicionar", min_value=1, step=1)
+                    submitted_increment = st.form_submit_button("Incrementar Estoque")
+
+                    if submitted_increment:
+                        item_selecionado, variacao_selecionada = item_para_incrementar_str.split(" - ")
+                        adicionar_item_estoque(item_selecionado, variacao_selecionada, quantidade_incrementar, preco=None)
+                        st.rerun()
+
+    st.subheader("Registrar Venda")
+    if not df_estoque.empty:
+        with st.form("form_venda"):
+            itens_disponiveis = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
+            item_vendido_str = st.selectbox("Selecione o item vendido", itens_disponiveis)
+            quantidade_vendida = st.number_input("Quantidade Vendida", min_value=1, step=1)
+            submitted_venda = st.form_submit_button("Registrar Venda")
+
+            if submitted_venda:
+                item_selecionado, variacao_selecionada = item_vendido_str.split(" - ")
+                
+                idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0]
+                
+                if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
+                    preco_unitario = df_estoque.loc[idx, 'Preço']
+                    preco_total = quantidade_vendida * preco_unitario
+                    df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida
+                    atualizar_estoque_sheets(df_estoque)
+                    datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
+                    registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
+                    st.success(f"Venda registrada! Total: R$ {preco_total:.2f}")
+                    st.rerun()
+                else:
+                    st.error("Quantidade em estoque insuficiente para esta venda.")
+
+    st.subheader("Estoque Atual")
+    if df_estoque.empty:
+        st.info("Nenhum item em estoque.")
+    else:
+        df_estoque_display = df_estoque.copy()
+        df_estoque_display['Quantidade'] = pd.to_numeric(df_estoque_display['Quantidade']).astype(int)
+        df_estoque_display['Preço'] = pd.to_numeric(df_estoque_display['Preço']).map('R$ {:,.2f}'.format)
+        height = (len(df_estoque_display) + 1) * 35
+        st.dataframe(df_estoque_display, height=height, hide_index=True)
+
+elif opcao == "Relatório de Vendas":
+    st.title("Relatório de Vendas")
+    if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+        client = autenticar_gspread()
+        try:
+            sheet = client.open(SHEET_NAME)
+            worksheet = sheet.worksheet(WORKSHEET_VENDAS)
+            df_vendas = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+            df_vendas = df_vendas.dropna(how="all")
+            if df_vendas.empty:
+                st.info("Nenhuma venda registrada ainda.")
+            else:
+                data_filtro = st.date_input("Filtrar vendas por dia")
+                if data_filtro:
+                    df_vendas['Data/Hora'] = pd.to_datetime(df_vendas['Data/Hora'], format='%d/%m/%Y  %H:%M:%S')
+                    df_filtrado = df_vendas[df_vendas['Data/Hora'].dt.date == data_filtro]
+                else:
+                    df_filtrado = df_vendas
+
+                st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+                total_arrecadado = pd.to_numeric(df_filtrado['Preço Total']).sum()
+                st.metric(label="Total Arrecadado (filtrado)", value=f"R$ {total_arrecadado:.2f}")
+
+                st.subheader("Comissão do Dia")
+                comissoes = {
+                    "Cid": 0.30,
+                    "Cleo": 0.20,
+                    "Quiópa": 0.15,
+                    "Zanah": 0.15,
+                    "Caixa": 0.20
+                }
+                data_comissao = []
+                for nome, percentual in comissoes.items():
+                    valor_comissao = total_arrecadado * percentual
+                    data_comissao.append({"Nome": nome, "Percentual": f"{percentual:.0%}", "Valor do Dia": f"R$ {valor_comissao:,.2f}"})
+                
+                df_comissao = pd.DataFrame(data_comissao)
+                st.dataframe(df_comissao, hide_index=True)
+
+                st.subheader("Itens em Falta ou com Baixo Estoque")
+                df_estoque = ler_estoque_sheets()
+                df_estoque['Quantidade'] = pd.to_numeric(df_estoque['Quantidade'])
+                itens_em_falta = df_estoque[df_estoque['Quantidade'] <= 1]
+                if itens_em_falta.empty:
+                    st.info("Nenhum item com baixo estoque.")
+                else:
+                    st.dataframe(itens_em_falta, hide_index=True)
+
+        except gspread.exceptions.WorksheetNotFound:
+            st.info("Nenhuma venda registrada ainda.")
+        except Exception as e:
+            st.error(f"Erro ao ler o relatório de vendas: {e}")
+    else:
+        st.warning("Acesso restrito a administradores.")

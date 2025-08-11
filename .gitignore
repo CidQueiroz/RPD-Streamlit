@@ -1,3 +1,4 @@
-teste_gentil.py
-credentials.json
+teste_rpd.py
 gemini.md
+.streamlit/secrets.toml
+__pycache__/
