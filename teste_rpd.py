@@ -20,7 +20,7 @@ def autenticar_usuario(usuario, senha):
         df_usuarios['senha'] = df_usuarios['senha'].astype(str).str.strip()
         usuario = str(usuario).strip()
         senha = str(senha).strip()
-        st.write(df_usuarios)  # Para depuração
+        # st.write(df_usuarios)  # Para depuração
 
         usuario_encontrado = df_usuarios[
             (df_usuarios['usuario'] == usuario) & (df_usuarios['senha'] == senha)
@@ -414,6 +414,7 @@ elif opcao == "Estoque":
                 idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0]
                 
                 # Atualiza a quantidade
+                df_estoque['Quantidade'] = pd.to_numeric(df_estoque['Quantidade'])
                 if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
                     preco_unitario = df_estoque.loc[idx, 'Preço']
                     preco_total = quantidade_vendida * preco_unitario
