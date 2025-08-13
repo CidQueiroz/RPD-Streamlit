@@ -157,9 +157,8 @@ elif opcao == "Responder perguntas":
         conclusao = st.text_area(
             "4. Resposta Adaptativa (Como o 'Porto Seguro' analisaria isso?)"
         )
-        resultado = st.text_area(
-            "Resultado (Quanto você acredita agora em cada pensamento automático? (0 a 100%) Que emoções você sente agora? Qual a intensidade? (0 a 100%) O que você fará ou fez?)"
-        )
+        resultado = ''
+        
         submitted = st.form_submit_button("Enviar Respostas")
 
     if submitted:
