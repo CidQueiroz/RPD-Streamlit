@@ -72,6 +72,9 @@ if opcao == "Estoque":
     st.title("Controle de Estoque")
     df_estoque = ler_estoque_sheets()
 
+    df_estoque['Quantidade'] = pd.to_numeric(df_estoque['Quantidade'])
+    df_estoque['Preço'] = pd.to_numeric(df_estoque['Preço'])
+
     if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
         st.subheader("Adicionar/Incrementar Estoque")
         with st.form("form_add_item"):

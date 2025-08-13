@@ -30,7 +30,7 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     try:
         worksheet = sheet.worksheet(aba_destino)
     except Exception:
-        worksheet = sheet.add_worksheet(title=aba_destino, rows="1000", cols="10")
+        worksheet = sheet.add_worksheet(title=aba_destino, rows=1000, cols=10)
         worksheet.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
     df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
     nova_resposta = pd.DataFrame([{

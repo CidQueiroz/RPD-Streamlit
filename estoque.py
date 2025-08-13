@@ -12,14 +12,21 @@ WORKSHEET_VENDAS = "Vendas"
 # Funções para o estoque
 def ler_estoque_sheets():
     client = autenticar_gspread()
+    sheet = client.open(SHEET_NAME)
+
     try:
-        sheet = client.open(SHEET_NAME)
         worksheet = sheet.worksheet(WORKSHEET_ESTOQUE)
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         df = df.dropna(how="all")
+
+        # GARANTA QUE A CONVERSÃO DE TIPOS ACONTEÇA AQUI
+        if not df.empty:
+            df['Quantidade'] = pd.to_numeric(df['Quantidade'], errors='coerce').fillna(0).astype(int)
+            df['Preço'] = pd.to_numeric(df['Preço'], errors='coerce').fillna(0.0)
+
         return df
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sheet.add_worksheet(title=WORKSHEET_ESTOQUE, rows="1000", cols="10")
+        worksheet = sheet.add_worksheet(title=WORKSHEET_ESTOQUE, rows=1000, cols=10)
         worksheet.append_row(["Item", "Variação", "Quantidade", "Preço"])
         return pd.DataFrame(columns=["Item", "Variação", "Quantidade", "Preço"])
     except Exception as e:
@@ -34,6 +41,11 @@ def adicionar_item_estoque(item, variacao, quantidade, preco=None):
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
         df = df.dropna(how="all")
 
+        # CONVERTA AS COLUNAS AQUI
+        if not df.empty:
+            df['Quantidade'] = pd.to_numeric(df['Quantidade'], errors='coerce').fillna(0).astype(int)
+            df['Preço'] = pd.to_numeric(df['Preço'], errors='coerce').fillna(0.0)
+
         item_padronizado = item.strip().capitalize()
         variacao_padronizada = variacao.strip().capitalize()
 
@@ -43,7 +55,7 @@ def adicionar_item_estoque(item, variacao, quantidade, preco=None):
         if not df[filtro].empty:
             idx = df[filtro].index[0]
             df.loc[idx, 'Quantidade'] = pd.to_numeric(df.loc[idx, 'Quantidade']) + quantidade
-            st.success(f"Quantidade de {item_padronizado} - {variacao_padronizada} atualizada para {int(df.loc[idx, 'Quantidade'])}!")
+            st.success(f"Quantidade de {item_padronizado} - {variacao_padronizada} atualizada para {df.loc[idx, 'Quantidade']}!")
         else:
             if preco is None:
                 st.error("Preço é obrigatório para novos itens.")
@@ -70,7 +82,7 @@ def registrar_venda_sheets(datahora, item, variacao, quantidade, preco_unitario,
         try:
             worksheet = sheet.worksheet(WORKSHEET_VENDAS)
         except gspread.exceptions.WorksheetNotFound:
-            worksheet = sheet.add_worksheet(title=WORKSHEET_VENDAS, rows="1000", cols="10")
+            worksheet = sheet.add_worksheet(title=WORKSHEET_VENDAS, rows=1000, cols=10)
             worksheet.append_row(["Data/Hora", "Item", "Variação", "Quantidade", "Preço Unitário", "Preço Total", "Vendedor"])
         
         df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
