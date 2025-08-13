@@ -7,7 +7,7 @@ from gspread_dataframe import set_with_dataframe, get_as_dataframe
 from auth import autenticar_usuario, adicionar_usuario
 from estoque import ler_estoque_sheets, adicionar_item_estoque, registrar_venda_sheets, atualizar_estoque_sheets
 from sheets import autenticar_gspread, salvar_resposta_sheets, ler_respostas_sheets
-import rebranding # Importa nosso novo módulo
+import rebranding
 
 # Nome da planilha e aba
 SHEET_NAME = "RPD"
@@ -68,66 +68,7 @@ if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
 opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "Painel de Rebranding"])
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
-if opcao == "Responder perguntas":
-    st.subheader("Mapeamento e Desarmamento do 'Crítico Interno'")
-    st.markdown("Use esta ferramenta para externalizar os pensamentos que te sabotam.")
-
-    with st.form(key="formulario"):
-        situacao = st.text_area("1. Situação (O que aconteceu?)"
-        )
-        pensamentos = st.text_area(
-            "2. Pensamento Automático (O que o 'Crítico Interno' disse?)"
-        )
-        emocao = st.text_area(
-            "3. Emoção / Sentimento (O que você sentiu? Nota 0-100.)"
-        )
-        conclusao = st.text_area(
-            "4. Resposta Adaptativa (Como o 'Porto Seguro' analisaria isso?)"
-        )
-        resultado = st.text_area(
-            "Resultado (Quanto você acredita agora em cada pensamento automático? (0 a 100%) Que emoções você sente agora? Qual a intensidade? (0 a 100%) O que você fará ou fez?)"
-        )
-        submitted = st.form_submit_button("Enviar Respostas")
-
-    if submitted:
-        datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
-        salvar_resposta_sheets(
-            datahora, situacao, pensamentos, emocao, conclusao, 'Retirado', st.session_state.usuario_logado
-        )
-        st.success("Respostas salvas com sucesso no Excel!")
-        st.subheader("Resumo das respostas:")
-        st.write(f"**Data/Hora:** {datahora}")
-        st.write(f"**Situação:** {situacao}")
-        st.write(f"**Pensamentos automáticos:** {pensamentos}")
-        st.write(f"**Emoção:** {emocao}")
-        st.write(f"**Conclusão:** {conclusao}")
-        st.write(f"**Resultado:** {'Retirado'}")
-
-elif opcao == "Visualizar respostas":
-    st.title("Respostas já registradas")
-    if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
-        client = autenticar_gspread()
-        sheet = client.open(SHEET_NAME)
-        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque", "Vendas"]]
-        aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
-        df_respostas = ler_respostas_sheets(aba_escolhida)
-        st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
-    else:
-        df_respostas = ler_respostas_sheets(st.session_state.usuario_logado)
-
-    if df_respostas.empty:
-        st.info("Nenhuma resposta registrada ainda.")
-    else:
-        st.dataframe(df_respostas, use_container_width=True, hide_index=True)
-        csv = df_respostas.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="Baixar todas as respostas em CSV",
-            data=csv,
-            file_name="RPD.csv",
-            mime="text/csv"
-        )
-
-elif opcao == "Estoque":
+if opcao == "Estoque":
     st.title("Controle de Estoque")
     df_estoque = ler_estoque_sheets()
 
@@ -199,6 +140,65 @@ elif opcao == "Estoque":
         df_estoque_display['Preço'] = pd.to_numeric(df_estoque_display['Preço']).map('R$ {:,.2f}'.format)
         height = (len(df_estoque_display) + 1) * 35
         st.dataframe(df_estoque_display, height=height, hide_index=True)
+
+elif opcao == "Responder perguntas":
+    st.subheader("Mapeamento e Desarmamento do 'Crítico Interno'")
+    st.markdown("Use esta ferramenta para externalizar os pensamentos que te sabotam.")
+
+    with st.form(key="formulario"):
+        situacao = st.text_area("1. Situação (O que aconteceu?)"
+        )
+        pensamentos = st.text_area(
+            "2. Pensamento Automático (O que o 'Crítico Interno' disse?)"
+        )
+        emocao = st.text_area(
+            "3. Emoção / Sentimento (O que você sentiu? Nota 0-100.)"
+        )
+        conclusao = st.text_area(
+            "4. Resposta Adaptativa (Como o 'Porto Seguro' analisaria isso?)"
+        )
+        resultado = st.text_area(
+            "Resultado (Quanto você acredita agora em cada pensamento automático? (0 a 100%) Que emoções você sente agora? Qual a intensidade? (0 a 100%) O que você fará ou fez?)"
+        )
+        submitted = st.form_submit_button("Enviar Respostas")
+
+    if submitted:
+        datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
+        salvar_resposta_sheets(
+            datahora, situacao, pensamentos, emocao, conclusao, 'Retirado', st.session_state.usuario_logado
+        )
+        st.success("Respostas salvas com sucesso no Excel!")
+        st.subheader("Resumo das respostas:")
+        st.write(f"**Data/Hora:** {datahora}")
+        st.write(f"**Situação:** {situacao}")
+        st.write(f"**Pensamentos automáticos:** {pensamentos}")
+        st.write(f"**Emoção:** {emocao}")
+        st.write(f"**Conclusão:** {conclusao}")
+        st.write(f"**Resultado:** {'Retirado'}")
+
+elif opcao == "Visualizar respostas":
+    st.title("Respostas já registradas")
+    if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        abas = [ws.title for ws in sheet.worksheets() if ws.title not in ["Usuarios", "Estoque", "Vendas"]]
+        aba_escolhida = st.selectbox("Selecione o usuário/aba para visualizar:", abas)
+        df_respostas = ler_respostas_sheets(aba_escolhida)
+        st.write(f"Visualizando respostas da aba: **{aba_escolhida}**")
+    else:
+        df_respostas = ler_respostas_sheets(st.session_state.usuario_logado)
+
+    if df_respostas.empty:
+        st.info("Nenhuma resposta registrada ainda.")
+    else:
+        st.dataframe(df_respostas, use_container_width=True, hide_index=True)
+        csv = df_respostas.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="Baixar todas as respostas em CSV",
+            data=csv,
+            file_name="RPD.csv",
+            mime="text/csv"
+        )
 
 elif opcao == "Relatório de Vendas":
     st.title("Relatório de Vendas")
