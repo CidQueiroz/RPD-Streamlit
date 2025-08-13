@@ -21,7 +21,7 @@ def autenticar_gspread():
 # Função para salvar respostas no Google Sheets
 def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, resultado, usuario_login):
     client = autenticar_gspread()
-    aba_destino = "Respostas" if usuario_login == "admin" else usuario_login
+    aba_destino = "Respostas" if usuario_login == "cid" else usuario_login
     try:
         sheet = client.open(SHEET_NAME)
     except Exception:
@@ -44,6 +44,7 @@ def salvar_resposta_sheets(datahora, situacao, pensamentos, emocao, conclusao, r
     df = pd.concat([df, nova_resposta], ignore_index=True)
     worksheet.clear()
     set_with_dataframe(worksheet, df)
+    
 
 # Função para ler respostas do Google Sheets
 def ler_respostas_sheets(aba_destino):

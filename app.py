@@ -77,7 +77,11 @@ if opcao == "Estoque":
         with st.form("form_add_item"):
             df_estoque = ler_estoque_sheets()
             
-            opcao_adicao = st.radio("", ["Adicionar Novo Item", "Incrementar Item Existente"], key="opcao_adicao")
+            opcao_adicao = st.radio(
+                "Escolha uma ação:",
+                ["Adicionar Novo Item", "Incrementar Item Existente"],
+                key="opcao_adicao"
+            )
 
             if opcao_adicao == "Adicionar Novo Item":
                 novo_item_nome = st.text_input("Nome do Item")
