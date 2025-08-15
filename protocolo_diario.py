@@ -4,6 +4,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
+import plotly.express as px
 
 # --- ATENÇÃO: AJUSTE ESTES IMPORTS ---
 # Funções impotdascdo arquivo de utilidades do Sheets.
@@ -82,8 +83,36 @@ def exibir_protocolo_diario():
         st.subheader("Progresso do Dia")
         
         percentual_concluido = (tarefas_concluidas_hoje / len(TODAS_TAREFAS)) if TODAS_TAREFAS else 0.0
-        progresso_df = pd.DataFrame({'% Concluída': [percentual_concluido * 100]})
-        st.bar_chart(progresso_df, y='% Concluída')
+
+        progresso_df = pd.DataFrame({'Progresso': [percentual_concluido * 100]})
+        fig = px.bar(progresso_df, y='Progresso', orientation='v',
+                     height=300) # Define uma altura fixa para a barra
+        
+        # 2. Customização para criar a "box" e adicionar o rótulo
+        fig.update_layout(
+            yaxis_range=[0, 100],  # Define o eixo Y de 0 a 100, criando a "box"
+            xaxis_title="",        # Remove o título do eixo X
+            xaxis_showticklabels=False, # Remove os labels do eixo X
+            plot_bgcolor='rgba(0,0,0,0)', # Fundo transparente
+            margin=dict(l=10, r=10, t=10, b=10) # Margens pequenas
+        )
+        
+        # 3. Adiciona o rótulo de dados e remove as linhas de grade
+        fig.update_traces(
+            texttemplate='%{y:.0f}%',      # Formato do texto (número inteiro + %)
+            textposition='inside',         # Posição do texto
+            marker_color='#0068C9',        # Cor de preenchimento da barra
+            marker_line_color='black',     # Cor do contorno da barra
+            marker_line_width=2            # Espessura do contorno em pixels
+        )
+
+        fig.update_yaxes(
+            showgrid=False,      # Remove as linhas de grade do eixo Y
+            showticklabels=False # Remove os labels do eixo Y
+        )
+
+        # 4. Renderiza o gráfico customizado
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         st.metric(label="Missão Diária", value=f"{percentual_concluido:.0%}")
 
 
