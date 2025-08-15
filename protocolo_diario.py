@@ -83,32 +83,55 @@ def exibir_protocolo_diario():
         st.subheader("Progresso do Dia")
         
         percentual_concluido = (tarefas_concluidas_hoje / len(TODAS_TAREFAS)) if TODAS_TAREFAS else 0.0
-
-        progresso_df = pd.DataFrame({'Progresso': [percentual_concluido * 100]})
-        fig = px.bar(progresso_df, y='Progresso', orientation='v',
-                     height=300) # Define uma altura fixa para a barra
         
-        # 2. Customização para criar a "box" e adicionar o rótulo
+        # Para o gráfico, usamos o valor percentual (ex: 9 para 9%)
+        valor_progresso = percentual_concluido * 100
+
+        # --- NOVA LÓGICA DO GRÁFICO ---
+        # 1. Usamos plotly.graph_objects para ter mais controle
+        import plotly.graph_objects as go
+
+        # 2. Criamos a figura e adicionamos as duas barras (traces)
+        fig = go.Figure()
+
+        # BARRA DE FUNDO (A "CAIXA" DE 100%)
+        # Esta barra fica atrás, tem valor fixo de 100, preenchimento transparente e um contorno cinza.
+        fig.add_trace(go.Bar(
+            y=[100],
+            name='Fundo',
+            marker_color='rgba(0,0,0,0)',  # Preenchimento 100% transparente
+            marker_line_color='gray',     # Cor do contorno da "caixa"
+            marker_line_width=2,
+            hoverinfo='none'              # Não mostra tooltip para esta barra
+        ))
+
+        # BARRA DE PROGRESSO REAL
+        # Esta é a barra que mostra o progresso atual. Ela não precisa de contorno.
+        fig.add_trace(go.Bar(
+            y=[valor_progresso],
+            name='Progresso',
+            texttemplate='%{y:.0f}%',
+            textposition='inside',
+            marker_color='#0068C9',        # Cor da barra de progresso
+            hoverinfo='none'
+        ))
+
+        # 3. CONFIGURAR O LAYOUT FINAL
+        # O 'barmode='overlay'' é a chave para colocar uma barra sobre a outra
         fig.update_layout(
-            yaxis_range=[0, 100],  # Define o eixo Y de 0 a 100, criando a "box"
-            xaxis_title="",        # Remove o título do eixo X
-            xaxis_showticklabels=False, # Remove os labels do eixo X
-            plot_bgcolor='rgba(0,0,0,0)', # Fundo transparente
-            margin=dict(l=10, r=10, t=10, b=10) # Margens pequenas
+            barmode='overlay',
+            yaxis_range=[0, 100],
+            xaxis_title="",
+            xaxis_showticklabels=False,
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=300,
+            showlegend=False  # Esconde a legenda
         )
         
-        # 3. Adiciona o rótulo de dados e remove as linhas de grade
-        fig.update_traces(
-            texttemplate='%{y:.0f}%',      # Formato do texto (número inteiro + %)
-            textposition='inside',         # Posição do texto
-            marker_color='#0068C9',        # Cor de preenchimento da barra
-            marker_line_color='white',     # Cor do contorno da barra
-            marker_line_width=2            # Espessura do contorno em pixels
-        )
-
         fig.update_yaxes(
-            showgrid=False,      # Remove as linhas de grade do eixo Y
-            showticklabels=False # Remove os labels do eixo Y
+            showgrid=False,
+            showticklabels=False
         )
 
         # 4. Renderiza o gráfico customizado
