@@ -63,7 +63,8 @@ st.sidebar.title("Menu")
 opcoes_menu = ["Estoque"]
 if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
-elif st.session_state.get("usuario_logado") in ["cid"]:
+
+if st.session_state.get("usuario_logado") in ["cid"]:
     opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "AMV Tracker", "Protocolo Diário (POD)"])
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
