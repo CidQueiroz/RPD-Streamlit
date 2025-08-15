@@ -8,6 +8,7 @@ from auth import autenticar_usuario, adicionar_usuario
 from estoque import ler_estoque_sheets, adicionar_item_estoque, registrar_venda_sheets, atualizar_estoque_sheets
 from sheets import autenticar_gspread, salvar_resposta_sheets, ler_respostas_sheets
 import rebranding
+import protocolo_diario
 
 # Nome da planilha e aba
 SHEET_NAME = "RPD"
@@ -65,20 +66,19 @@ st.sidebar.title("Menu")
 opcoes_menu = ["Estoque"]
 if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
-opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "Painel de Rebranding"])
+opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "AMV Tracker", "Protocolo Diário (POD)"])
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Estoque":
     st.title("Controle de Estoque")
+    # Agora a função ler_estoque_sheets() já retorna o DataFrame com os tipos corretos!
     df_estoque = ler_estoque_sheets()
 
-    df_estoque['Quantidade'] = pd.to_numeric(df_estoque['Quantidade'])
-    df_estoque['Preço'] = pd.to_numeric(df_estoque['Preço'])
-
+    # Seção para administradores adicionarem itens
     if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
         st.subheader("Adicionar/Incrementar Estoque")
         with st.form("form_add_item"):
-            df_estoque = ler_estoque_sheets()
+            # Usamos o df_estoque já carregado e corrigido
             
             opcao_adicao = st.radio(
                 "Escolha uma ação:",
@@ -113,6 +113,7 @@ if opcao == "Estoque":
                         adicionar_item_estoque(item_selecionado, variacao_selecionada, quantidade_incrementar, preco=None)
                         st.rerun()
 
+    # Seção para registrar vendas
     st.subheader("Registrar Venda")
     if not df_estoque.empty:
         with st.form("form_venda"):
@@ -126,10 +127,11 @@ if opcao == "Estoque":
                 
                 idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0]
                 
+                # A COMPARAÇÃO AGORA FUNCIONA PERFEITAMENTE!
                 if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
                     preco_unitario = df_estoque.loc[idx, 'Preço']
                     preco_total = quantidade_vendida * preco_unitario
-                    df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida
+                    df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida # O cálculo também é seguro
                     atualizar_estoque_sheets(df_estoque)
                     datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
                     registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
@@ -138,6 +140,7 @@ if opcao == "Estoque":
                 else:
                     st.error("Quantidade em estoque insuficiente para esta venda.")
 
+    # Seção para mostrar o estoque atual
     st.subheader("Estoque Atual")
     if df_estoque.empty:
         st.info("Nenhum item em estoque.")
@@ -147,6 +150,7 @@ if opcao == "Estoque":
         df_estoque_display['Preço'] = pd.to_numeric(df_estoque_display['Preço']).map('R$ {:,.2f}'.format)
         height = (len(df_estoque_display) + 1) * 35
         st.dataframe(df_estoque_display, height=height, hide_index=True)
+
 
 elif opcao == "Responder perguntas":
     st.subheader("Mapeamento e Desarmamento do 'Crítico Interno'")
@@ -263,3 +267,6 @@ elif opcao == "Relatório de Vendas":
 
 elif opcao == "Painel de Rebranding":
     rebranding.exibir_painel_rebranding()
+
+elif opcao == "Protocolo Diário (POD)":
+    protocolo_diario.exibir_protocolo_diario()

@@ -91,3 +91,46 @@ def salvar_consistencia_sheets(data_hoje, atividade, usuario_login):
     # Adiciona a nova linha de forma eficiente
     nova_linha = [data_hoje, atividade, usuario_login]
     worksheet.append_row(nova_linha)
+
+
+def carregar_log_diario_sheets():
+    """Carrega o log de operações diárias (POD) do Google Sheets."""
+    try:
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        worksheet = sheet.worksheet("Log Diario POD") # Nome da nova aba
+        df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+        # Remove linhas que possam ter sido importadas como totalmente vazias
+        df = df.dropna(how='all')
+        if not df.empty:
+            df['Status'] = df['Status'].astype(bool) # Garante que o status seja booleano
+            df['Data'] = df['Data'].astype(str)
+        return df
+    except gspread.WorksheetNotFound:
+        # Se a aba não existe, retorna um DataFrame vazio com a estrutura correta
+        return pd.DataFrame(columns=['Data', 'Tarefa', 'Status'])
+    except Exception as e:
+        st.error(f"Falha ao carregar o 'Log Diario POD'. Verifique se a aba existe. Erro: {e}")
+        return pd.DataFrame(columns=['Data', 'Tarefa', 'Status'])
+
+
+def salvar_log_diario_sheets(df_completo):
+    """Salva o DataFrame completo do log diário no Google Sheets, substituindo os dados antigos."""
+    try:
+        client = autenticar_gspread()
+        sheet = client.open(SHEET_NAME)
+        aba_destino = "Log Diario POD"
+        try:
+            worksheet = sheet.worksheet(aba_destino)
+        except gspread.WorksheetNotFound:
+            # Cria a aba se ela não existir
+            worksheet = sheet.add_worksheet(title=aba_destino, rows=1000, cols=3)
+            worksheet.append_row(["Data", "Tarefa", "Status"])
+        
+        # Limpa a planilha e escreve o DataFrame atualizado
+        # (Seguindo a mesma lógica da sua função de RPD)
+        worksheet.clear()
+        set_with_dataframe(worksheet, df_completo)
+        st.toast("Progresso diário salvo na nuvem.", icon="☁️")
+    except Exception as e:
+        st.error(f"Não foi possível salvar o log diário no Google Sheets. Erro: {e}")
