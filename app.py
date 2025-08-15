@@ -125,7 +125,7 @@ if opcao == "Estoque":
             if submitted_venda:
                 item_selecionado, variacao_selecionada = item_vendido_str.split(" - ")
                 
-                idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0]
+                idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0] # type: ignore
                 
                 # A COMPARAÇÃO AGORA FUNCIONA PERFEITAMENTE!
                 if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
