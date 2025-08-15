@@ -102,7 +102,7 @@ def exibir_protocolo_diario():
             texttemplate='%{y:.0f}%',      # Formato do texto (número inteiro + %)
             textposition='inside',         # Posição do texto
             marker_color='#0068C9',        # Cor de preenchimento da barra
-            marker_line_color='black',     # Cor do contorno da barra
+            marker_line_color='white',     # Cor do contorno da barra
             marker_line_width=2            # Espessura do contorno em pixels
         )
 
