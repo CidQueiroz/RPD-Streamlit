@@ -256,7 +256,7 @@ elif opcao == "Relatório de Vendas":
                     st.info("Nenhum item com baixo estoque.")
                 else:
                     height = (len(itens_em_falta) + 1) * 35
-                    st.dataframe(itens_em_falta, hide_index=True)
+                    st.dataframe(itens_em_falta, height=height, hide_index=True)
 
         except gspread.exceptions.WorksheetNotFound:
             st.info("Nenhuma venda registrada ainda.")
