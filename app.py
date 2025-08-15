@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import pytz
-import gspread
+import pytz, gspread, rebranding, protocolo_diario
 from gspread_dataframe import set_with_dataframe, get_as_dataframe
 from auth import autenticar_usuario, adicionar_usuario
 from estoque import ler_estoque_sheets, adicionar_item_estoque, registrar_venda_sheets, atualizar_estoque_sheets
 from sheets import autenticar_gspread, salvar_resposta_sheets, ler_respostas_sheets
-import rebranding
-import protocolo_diario
 
 # Nome da planilha e aba
 SHEET_NAME = "RPD"
@@ -265,7 +262,7 @@ elif opcao == "Relatório de Vendas":
     else:
         st.warning("Acesso restrito a administradores.")
 
-elif opcao == "Painel de Rebranding":
+elif opcao == "AMV Tracker":
     rebranding.exibir_painel_rebranding()
 
 elif opcao == "Protocolo Diário (POD)":
