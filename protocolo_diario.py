@@ -6,10 +6,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import plotly.express as px
 
-# --- ATENÇÃO: AJUSTE ESTES IMPORTS ---
 # Funções impotdascdo arquivo de utilidades do Sheets.
 from sheets import carregar_log_diario_sheets, salvar_log_diario_sheets
-# -----------------------------------------
 
 # --- DEFINIÇÃO DAS TAREFAS DO PROTOCOLO ---
 TAREFAS_POD = {
@@ -17,7 +15,7 @@ TAREFAS_POD = {
         "Ativação: Beber 1 copo d'água cheio ao acordar.",
         "Calibração: Fazer 5 minutos de respiração guiada ",
         "Treinamento Principal: Executar 1 bloco de 25 minutos",
-        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação"
+        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação (Manhã)"
     ],
     "Execução da Missão": [
         "Logística Escolar: Buscar as gêmeas na escola.",
@@ -26,7 +24,7 @@ TAREFAS_POD = {
         "ogística Terapêutica: Levar as gêmeas para suas terapias/atividades."
     ],
     "Debriefing Noturno": [
-        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação",
+        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação (Noite)",
         "Marcar o 'x' no seu 'D.Bordo' para a AMV de estudo que você fez pela manhã.",
         "preencher 1 RPD com a 'Resposta Adaptativa'. Se não houve, pule esta etapa.",
         "Planejamento: Definir qual será a tarefa de estudo de amanhã"
