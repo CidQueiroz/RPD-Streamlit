@@ -21,8 +21,8 @@ TAREFAS_POD = {
     "Execução da Missão": [
         "Logística Escolar: Buscar as gêmeas na escola.",
         " Missão 'Explicador': Dedicar 1 hora de suporte focado nos estudos/deveres de casa das gêmeas.",
-        "Operações Domésticas: Executar 1 tarefa doméstica"
-        "ogística Terapêutica: Levar as gêmeas para suas terapias/atividades."
+        "Operações Domésticas: Executar 1 tarefa doméstica",
+        "Logística Terapêutica: Levar as gêmeas para suas terapias/atividades."
     ],
     "Debriefing Noturno": [
         "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação (Noite)",
