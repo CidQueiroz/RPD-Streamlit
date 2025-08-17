@@ -4,7 +4,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-import plotly.express as px
+import plotly.graph_objects as go
+
 
 # Funções impotdascdo arquivo de utilidades do Sheets.
 from sheets import carregar_log_diario_sheets, salvar_log_diario_sheets
@@ -79,29 +80,23 @@ def exibir_protocolo_diario():
         salvar_log_diario_sheets(log_final_para_salvar)
 
     with col2:
-        st.subheader("Progresso do Dia")
+        st.markdown("<h3 style='text-align: center;'>Progresso do Dia</h3>", unsafe_allow_html=True)
         
         percentual_concluido = (tarefas_concluidas_hoje / len(TODAS_TAREFAS)) if TODAS_TAREFAS else 0.0
         
         # Para o gráfico, usamos o valor percentual (ex: 9 para 9%)
         valor_progresso = percentual_concluido * 100
 
-        # --- NOVA LÓGICA DO GRÁFICO ---
-        # 1. Usamos plotly.graph_objects para ter mais controle
-        import plotly.graph_objects as go
-
         # 2. Criamos a figura e adicionamos as duas barras (traces)
         fig = go.Figure()
 
         # BARRA DE FUNDO (A "CAIXA" DE 100%)
         # Esta barra fica atrás, tem valor fixo de 100, preenchimento transparente e um contorno cinza.
+        
         fig.add_trace(go.Bar(
-            y=[100],
-            name='Fundo',
-            marker_color='rgba(0,0,0,0)',  # Preenchimento 100% transparente
-            marker_line_color='gray',     # Cor do contorno da "caixa"
-            marker_line_width=2,
-            hoverinfo='none'              # Não mostra tooltip para esta barra
+            y=[100], name='Fundo',
+            marker_color='rgba(0,0,0,0)', marker_line_color='gray',
+            marker_line_width=1.5, hoverinfo='none'
         ))
 
         # BARRA DE PROGRESSO REAL
@@ -123,19 +118,19 @@ def exibir_protocolo_diario():
             xaxis_title="",
             xaxis_showticklabels=False,
             plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=300,
+            margin=dict(l=0, r=0, t=0, b=0),
+            height=500,
             showlegend=False  # Esconde a legenda
         )
         
-        fig.update_yaxes(
-            showgrid=False,
-            showticklabels=False
-        )
+        fig.update_yaxes( showgrid=False,showticklabels=False)
 
         # 4. Renderiza o gráfico customizado
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-        st.metric(label="Missão Diária", value=f"{percentual_concluido:.0%}")
+        st.plotly_chart(fig, align="right", use_container_width=True, config={'displayModeBar': False})
+
+        _, mid_col, _ = st.columns([1, 3, 1])
+        with mid_col:
+            st.metric(label="Missão Diária", value=f"{percentual_concluido:.0%}")
 
 
     st.divider()
