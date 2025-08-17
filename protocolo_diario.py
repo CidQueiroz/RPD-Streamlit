@@ -14,21 +14,22 @@ from sheets import carregar_log_diario_sheets, salvar_log_diario_sheets
 # --- DEFINIÇÃO DAS TAREFAS DO PROTOCOLO ---
 TAREFAS_POD = {
     "Briefing da Manhã": [
-        "Ativação Física (Água)",
-        "Calibração Emocional (DBT - 5 min)",
-        "Definição da Missão (1 AMV)",
-        "Logística (Medicação)"
+        "Ativação: Beber 1 copo d'água cheio ao acordar.",
+        "Calibração: Fazer 5 minutos de respiração guiada ",
+        "Treinamento Principal: Executar 1 bloco de 25 minutos",
+        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação"
     ],
     "Execução da Missão": [
-        "Execução da AMV Prioritária",
-        "Treinamento de Campo (Prática do PIP)",
-        "Ação Mínima Oportunista"
+        "Logística Escolar: Buscar as gêmeas na escola.",
+        " Missão 'Explicador': Dedicar 1 hora de suporte focado nos estudos/deveres de casa das gêmeas.",
+        "Operações Domésticas: Executar 1 tarefa doméstica"
+        "ogística Terapêutica: Levar as gêmeas para suas terapias/atividades."
     ],
     "Debriefing Noturno": [
-        "Registro no Diário de Bordo (Marcar 'X')",
-        "Análise Tática (RPD, se necessário)",
-        "Planejamento da Próxima Missão (AMV de amanhã)",
-        "Descompressão e Recuperação"
+        "Projeto 'Caça-Preço': Executar 1 bloco de 25 minutos de programação",
+        "Marcar o 'x' no seu 'D.Bordo' para a AMV de estudo que você fez pela manhã.",
+        "preencher 1 RPD com a 'Resposta Adaptativa'. Se não houve, pule esta etapa.",
+        "Planejamento: Definir qual será a tarefa de estudo de amanhã"
     ]
 }
 
