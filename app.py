@@ -80,7 +80,8 @@ if opcao == "Estoque":
         opcao_adicao = st.radio(
             "Escolha uma ação:",
             ["Adicionar Novo Item", "Incrementar Item Existente"],
-            key="opcao_adicao"
+            key="acao_estoque_radio",
+            horizontal=True
         )
         
         # 1. Inicialize TODAS as variáveis que podem ser criadas condicionalmente.
@@ -131,33 +132,32 @@ if opcao == "Estoque":
                 st.success(f'Estoque de "{item_para_incrementar_str}" incrementado com sucesso!')
                 st.rerun()
 
- 
-        # Seção para registrar vendas
-        st.subheader("Registrar Venda")
-        if not df_estoque.empty:
-            with st.form("form_venda"):
-                itens_disponiveis = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
-                item_vendido_str = st.selectbox("Selecione o item vendido", itens_disponiveis)
-                quantidade_vendida = st.number_input("Quantidade Vendida", min_value=1, step=1)
-                submitted_venda = st.form_submit_button("Registrar Venda")
+    # Seção para registrar vendas
+    st.subheader("Registrar Venda")
+    if not df_estoque.empty:
+        with st.form("form_venda"):
+            itens_disponiveis = [f"{row['Item']} - {row['Variação']}" for index, row in df_estoque.iterrows()]
+            item_vendido_str = st.selectbox("Selecione o item vendido", itens_disponiveis)
+            quantidade_vendida = st.number_input("Quantidade Vendida", min_value=1, step=1)
+            submitted_venda = st.form_submit_button("Registrar Venda")
 
-                if submitted_venda:
-                    item_selecionado, variacao_selecionada = item_vendido_str.split(" - ")
-                    
-                    idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0] # type: ignore
-                    
-                    # A COMPARAÇÃO AGORA FUNCIONA PERFEITAMENTE!
-                    if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
-                        preco_unitario = df_estoque.loc[idx, 'Preço']
-                        preco_total = quantidade_vendida * preco_unitario
-                        df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida # O cálculo também é seguro
-                        atualizar_estoque_sheets(df_estoque)
-                        datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
-                        registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
-                        st.success(f"Venda registrada! Total: R$ {preco_total:.2f}")
-                        st.rerun()
-                    else:
-                        st.error("Quantidade em estoque insuficiente para esta venda.")
+            if submitted_venda:
+                item_selecionado, variacao_selecionada = item_vendido_str.split(" - ")
+                
+                idx = df_estoque[(df_estoque['Item'] == item_selecionado) & (df_estoque['Variação'] == variacao_selecionada)].index[0] # type: ignore
+                
+                # A COMPARAÇÃO AGORA FUNCIONA PERFEITAMENTE!
+                if df_estoque.loc[idx, 'Quantidade'] >= quantidade_vendida:
+                    preco_unitario = df_estoque.loc[idx, 'Preço']
+                    preco_total = quantidade_vendida * preco_unitario
+                    df_estoque.loc[idx, 'Quantidade'] -= quantidade_vendida # O cálculo também é seguro
+                    atualizar_estoque_sheets(df_estoque)
+                    datahora = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
+                    registrar_venda_sheets(datahora, item_selecionado, variacao_selecionada, quantidade_vendida, preco_unitario, preco_total, st.session_state.nome_usuario)
+                    st.success(f"Venda registrada! Total: R$ {preco_total:.2f}")
+                    st.rerun()
+                else:
+                    st.error("Quantidade em estoque insuficiente para esta venda.")
 
     # Seção para mostrar o estoque atual
     st.subheader("Estoque Atual")
@@ -169,7 +169,6 @@ if opcao == "Estoque":
         df_estoque_display['Preço'] = pd.to_numeric(df_estoque_display['Preço']).map('R$ {:,.2f}'.format)
         height = (len(df_estoque_display) + 1) * 35
         st.dataframe(df_estoque_display, height=height, hide_index=True)
-
 
 elif opcao == "Responder perguntas":
     st.subheader("Mapeamento e Desarmamento do 'Crítico Interno'")
