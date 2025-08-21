@@ -50,7 +50,7 @@ def exibir_protocolo_diario():
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.subheader(f"Missões para hoje: {datetime.now().strftime('%d/%m/%Y')}")
+        st.subheader(f"Missões para hoje: {log_hoje}")
 
         tarefas_concluidas_hoje = 0
         status_atual_tarefas = {}
