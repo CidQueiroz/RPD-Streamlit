@@ -10,6 +10,15 @@ from gspread_dataframe import set_with_dataframe, get_as_dataframe
 SHEET_NAME = "RPD"
 WORKSHEET_ESTOQUE = "Estoque"
 WORKSHEET_VENDAS = "Vendas"
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
 
 # >>> CORREÇÃO ESTRATÉGICA APLICADA AQUI <<<
 def ler_estoque_sheets():

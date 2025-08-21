@@ -27,7 +27,15 @@ def carregar_log_consistencia_sheets():
         st.error(f"Falha ao carregar dados do 'D.Bordo'. Erro: {e}")
         return pd.DataFrame(columns=['Data', 'Atividade', 'Usuario'])
 
-# --- NOVAS FUNÇÕES PARA GERENCIAR A LISTA DE ATIVIDADES ---
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
 
 def carregar_lista_atividades():
     """Carrega a lista de atividades customizadas da aba 'Atividades'."""

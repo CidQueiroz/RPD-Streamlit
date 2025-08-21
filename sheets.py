@@ -7,6 +7,15 @@ from gspread_dataframe import set_with_dataframe, get_as_dataframe
 
 SHEET_NAME = "RPD"
 WORKSHEET_NAME = "Respostas"
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
 
 # Autenticação com Google Sheets
 def autenticar_gspread():

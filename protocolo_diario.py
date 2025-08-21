@@ -10,6 +10,16 @@ import pytz
 # Funções impotdascdo arquivo de utilidades do Sheets.
 from sheets import carregar_log_diario_sheets, salvar_log_diario_sheets
 
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
+
 # --- DEFINIÇÃO DAS TAREFAS DO PROTOCOLO ---
 TAREFAS_POD = {
     "Briefing da Manhã": [

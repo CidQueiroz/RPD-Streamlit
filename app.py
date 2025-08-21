@@ -13,6 +13,16 @@ WORKSHEET_NAME = "Respostas"
 WORKSHEET_ESTOQUE = "Estoque"
 WORKSHEET_VENDAS = "Vendas"
 
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
+
 # Configuração inicial do Streamlit
 if "usuario_autenticado" not in st.session_state:
     st.session_state.usuario_autenticado = False
