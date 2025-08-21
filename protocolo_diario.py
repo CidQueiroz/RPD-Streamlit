@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-
+import pytz
 
 # Funções impotdascdo arquivo de utilidades do Sheets.
 from sheets import carregar_log_diario_sheets, salvar_log_diario_sheets
@@ -42,7 +42,7 @@ def exibir_protocolo_diario():
     st.markdown("A vitória não é ter um dia perfeito. A vitória é completar o ciclo: **Planejar, Tentar, Registrar.**")
     
     log_df = carregar_log_diario_sheets()
-    hoje_str = datetime.now().strftime('%Y-%m-%d')
+    hoje_str = datetime.now(pytz.timezone('America/Sao_Paulo')).strftime("%d/%m/%Y  %H:%M:%S")
 
     # Filtra o log para obter apenas os dados de hoje
     log_hoje = log_df[log_df['Data'] == hoje_str]
