@@ -70,12 +70,16 @@ if st.sidebar.button("Sair"):
 
 # Menu lateral
 st.sidebar.title("Menu")
-opcoes_menu = ["Estoque"]
-if st.session_state.get("usuario_logado") in ["cid", "cleo"]:
+opcoes_menu = ["Responder perguntas", "Visualizar respostas"]
+if st.session_state.get("usuario_logado") in ["cid", "Cid", "Cleo", "cleo"]:
     opcoes_menu.append("Relatório de Vendas")
 
-if st.session_state.get("usuario_logado") in ["cid"]:
-    opcoes_menu.extend(["Responder perguntas", "Visualizar respostas", "AMV Tracker", "Protocolo Diário (POD)"])
+if st.session_state.get("usuario_logado") in ["cid", "Cid"]:
+    opcoes_menu.extend(["AMV Tracker", "Protocolo Diário (POD)"])
+
+if st.session_state.get("usuario_logado") in ['cid', 'Cid', 'Cleo', 'cleo', 'quiopa', 'zanah']:
+    opcoes_menu.append("Estoque")
+
 opcao = st.sidebar.radio("Escolha uma opção:", opcoes_menu)
 
 if opcao == "Estoque":

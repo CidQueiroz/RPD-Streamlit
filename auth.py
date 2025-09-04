@@ -60,7 +60,7 @@ def adicionar_usuario(nome, usuario, senha):
         worksheet_usuarios.clear()
         set_with_dataframe(worksheet_usuarios, df_usuarios)
         try:
-            sheet.add_worksheet(title=usuario, rows="1000", cols="10")
+            sheet.add_worksheet(title=usuario, rows=1000, cols=10)
             ws_novo = sheet.worksheet(usuario)
             ws_novo.append_row(["Data/Hora", "Situação", "Pensamentos automáticos", "Emoção", "Conclusão", "Resultado"])
         except Exception as e:
