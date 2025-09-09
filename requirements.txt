@@ -1,7 +1,10 @@
 streamlit
 pandas
-gspread
-gspread_dataframe
-oauth2client
 streamlit-authenticator
+mysql-connector-python
+python-dotenv
 plotly
+pytest
+pytest-cov
+SQLAlchemy
+fpdf2
