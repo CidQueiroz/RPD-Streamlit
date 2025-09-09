@@ -40,7 +40,7 @@ Este projeto foi construído com as seguintes tecnologias:
 | **Framework Web** | ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white) |
 | **Banco de Dados** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) |
 | **Manipulação de Dados** | ![Pandas](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white) |
-| **Visualização de Dados** | ![Plotly](https.img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white) |
+| **Visualização de Dados** | ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white) |
 | **Autenticação** | ![streamlit-authenticator](https://img.shields.io/badge/streamlit--authenticator-FF4B4B?style=for-the-badge) |
 
 ---
@@ -51,7 +51,7 @@ Siga os passos abaixo para rodar o projeto em sua máquina local:
 
 1.  **Clone o repositório:**
     ```bash
-    git clone https://github.com/seu-usuario/seu-repositorio.git
+    git clone https://github.com/seu-usuario/rebranding.git
     cd seu-repositorio
     ```
 
@@ -75,25 +75,31 @@ Siga os passos abaixo para rodar o projeto em sua máquina local:
     ```
     Acesse `http://localhost:8501` no seu navegador.
 
----
-
 ## 📂 Estrutura do Projeto
 
 <details>
   <summary>Clique para expandir e ver a estrutura de arquivos</summary>
 
-  '''
-  .
-  ├── app.py                # Ponto de entrada principal da aplicação
-  ├── auth.py               # Módulo de autenticação de usuários
-  ├── database.py           # Camada de acesso ao banco de dados (MySQL)
-  ├── estoque.py            # Lógica de negócio para estoque e vendas
-  ├── protocolo_diario.py   # Lógica do módulo "Protocolo Diário (POD)"
-  ├── rebranding.py         # Lógica do módulo "AMV Tracker"
-  ├── rpd.py                # Lógica do módulo "Registro de Pensamentos"
-  ├── requirements.txt      # Lista de dependências do projeto
-  └── .env.example          # Exemplo de arquivo de variáveis de ambiente
-  '''
+```
+.
+├── app.py                      # Ponto de entrada principal da aplicação Streamlit
+├── core/                       # Módulos centrais da aplicação
+│   ├── __init__.py
+│   ├── auth.py                 # Lógica de autenticação de usuários
+│   └── database.py             # Camada de acesso ao banco de dados (MySQL)
+├── desenvolvimento_pessoal/    # Módulos relacionados ao desenvolvimento pessoal
+│   ├── __init__.py
+│   ├── protocolo_diario.py     # Lógica do módulo "Protocolo Diário (POD)"
+│   ├── rebranding.py           # Lógica do módulo "AMV Tracker"
+│   └── rpd.py                  # Lógica do módulo "Registro de Pensamentos"
+├── gestao/                     # Módulos relacionados à gestão
+│   ├── __init__.py
+│   ├── estoque.py              # Lógica de negócio para estoque e vendas
+│   └── pdf_generator.py        # Lógica para gerar recibos em PDF
+├── tests/                      # Suíte de testes da aplicação
+├── requirements.txt            # Lista de dependências do projeto
+└── .env.example                # Exemplo de arquivo de variáveis de ambiente
+```
 </details>
 
 ---
