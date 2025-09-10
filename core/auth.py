@@ -26,8 +26,8 @@ def adicionar_usuario(nome, usuario, senha, id_empresa):
             "usuario": usuario,
             "senha": hashed_password,
             "empresa": id_empresa,
-            "acesso_dev": True, # Default para novos usuários
-            "is_staff": False   # Default para novos usuários
+            "acesso_dev": False, # Default para novos usuários
+            "is_staff": 0   # Default para novos usuários
         }
 
         # Executa o comando
