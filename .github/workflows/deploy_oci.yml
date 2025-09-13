@@ -1,0 +1,40 @@
+# Nome do nosso robô (workflow)
+name: Tentar Criar Instância OCI
+
+# Gatilhos: Quando o robô deve acordar e trabalhar
+on:
+  # 1. De hora em hora, automaticamente
+  schedule:
+    - cron: '0 * * * *' # A sintaxe 'cron' para "no minuto 0, de toda hora"
+  
+  # 2. Permite que você o acione manualmente pela interface do GitHub
+  workflow_dispatch:
+
+# Tarefas: O que o robô deve fazer
+jobs:
+  deploy:
+    # O tipo de computador que o robô usará (um Ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: O robô pega uma cópia das suas "plantas baixas" (o código do repo)
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # Passo 2: O robô pega a "caixa de ferramentas" do Terraform
+      - name: Setup do Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Passo 3: O robô executa os comandos do Terraform
+      - name: Executar Terraform
+        run: |
+          # Configura as credenciais da OCI a partir dos "segredos" guardados no GitHub
+          export OCI_TENANCY_OCID="${{ secrets.OCI_TENANCY_OCID }}"
+          export OCI_USER_OCID="${{ secrets.OCI_USER_OCID }}"
+          export OCI_PRIVATE_KEY="${{ secrets.OCI_PRIVATE_KEY }}"
+          export OCI_FINGERPRINT="${{ secrets.OCI_FINGERPRINT }}"
+          export OCI_REGION="sa-saopaulo-1" # Sua região
+
+          # Roda os comandos
+          terraform init
+          terraform apply -auto-approve

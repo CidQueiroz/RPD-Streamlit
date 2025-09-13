@@ -1,9 +1,13 @@
 teste_rpd.py
 gemini.md
-.streamlit/secrets.toml
+.streamlit/
 __pycache__/
 /htmlcov
 .env
 sql_inserts_v2/
 antigo_rpd.py
 backup.sql
+tests/
+venv/
+exportacoes/
+/.terraform

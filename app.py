@@ -2,11 +2,22 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import pytz
+import streamlit_authenticator as stauth
 from desenvolvimento_pessoal import rebranding, protocolo_diario, rpd
-from core.database import fetch_data_as_dataframe, fetch_data, get_empresa_por_nome
+from core.database import fetch_data_as_dataframe, fetch_data, get_empresa_por_nome, execute_command
 from core.auth import inicializar_autenticador, adicionar_usuario
 from gestao.estoque import ler_estoque, adicionar_ou_atualizar_item, registrar_venda
 from gestao.pdf_generator import criar_recibo_venda
+
+GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>  
+                    <script>
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-PJG10ZYPBS');
+                    </script>"""
+st.html(GOOGLE_ANALYTICS)
 
 def get_user_details(username):
     """Busca detalhes de um usuário no banco de dados."""
@@ -62,40 +73,87 @@ def main():
     st.set_page_config(layout="wide")
 
     authenticator = inicializar_autenticador()
+    if not authenticator:
+        st.stop()
     authenticator.login()
 
-    if not st.session_state.get("authentication_status"):
-        if st.session_state.get("authentication_status") is False:
+    name = st.session_state.get("name")
+    authentication_status = st.session_state.get("authentication_status")
+    username = st.session_state.get("username")
+
+    if not authentication_status:
+        if authentication_status is False:
             st.error('Usuário ou senha incorretos.')
-        else:
-            st.warning('Por favor, digite seu usuário e senha.')
 
-        st.markdown("---")
-        st.subheader("Novo por aqui? Cadastre-se!")
+        if 'auth_view' not in st.session_state:
+            st.session_state.auth_view = 'none'
 
-        with st.form("form_cadastro"):
-            novo_nome = st.text_input("Nome completo")
-            novo_usuario = st.text_input("Novo usuário")
-            nova_senha = st.text_input("Nova senha", type="password")
-            confirmar_senha = st.text_input("Confirmar senha", type="password")
-            nome_empresa = st.text_input("Nome da sua empresa")
-            
-            cadastrar = st.form_submit_button("Cadastrar")
-            
-            if cadastrar:
-                if not all([novo_nome, novo_usuario, nova_senha, confirmar_senha, nome_empresa]):
-                    st.warning("Todos os campos são obrigatórios.")
-                elif nova_senha != confirmar_senha:
-                    st.error("As senhas não coincidem.")
-                else:
-                    empresa_data = get_empresa_por_nome(nome_empresa.strip())
-                    if not empresa_data:
-                        st.error(f'A empresa "{nome_empresa}" não foi encontrada. Verifique o nome ou peça ao seu gerente para cadastrá-la.')
-                    else:
-                        id_empresa = empresa_data[0]['id_empresa']
-                        if adicionar_usuario(novo_nome, novo_usuario, nova_senha, id_empresa):
-                            st.success("Usuário cadastrado com sucesso! Por favor, faça o login.")
+        if st.session_state.auth_view == 'none':
+            st.markdown("---")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Esqueci minha senha", use_container_width=True):
+                    st.session_state.auth_view = 'forgot_password'
+                    st.rerun()
+            with col2:
+                if st.button("Novo usuário", use_container_width=True):
+                    st.session_state.auth_view = 'register'
+                    st.rerun()
+        
+        elif st.session_state.auth_view == 'forgot_password':
+            st.subheader("Recuperação de Senha")
+            with st.form("forgot_password_form"):
+                username_input = st.text_input("Usuário")
+                new_password = st.text_input("Nova Senha", type="password")
+                confirm_password = st.text_input("Confirmar Nova Senha", type="password")
+                submit = st.form_submit_button("Mudar Senha")
+
+                if submit:
+                    if new_password == confirm_password:
+                        hashed_password = stauth.Hasher.hash(new_password)
+                        query = "UPDATE usuarios SET senha = :senha WHERE usuario = :usuario"
+                        params = {"senha": hashed_password, "usuario": username_input}
+                        if execute_command(query, params):
+                            st.success("Senha alterada com sucesso!")
+                            st.session_state.auth_view = 'none'
                             st.rerun()
+                        else:
+                            st.error("Não foi possível alterar a senha.")
+                    else:
+                        st.error("As senhas não coincidem.")
+            if st.button("Voltar para o Login"):
+                st.session_state.auth_view = 'none'
+                st.rerun()
+
+        elif st.session_state.auth_view == 'register':
+            st.subheader("Novo por aqui? Cadastre-se!")
+            with st.form("form_cadastro"):
+                novo_nome = st.text_input("Nome completo")
+                novo_usuario = st.text_input("Novo usuário")
+                nova_senha = st.text_input("Nova senha", type="password")
+                confirmar_senha = st.text_input("Confirmar senha", type="password")
+                nome_empresa = st.text_input("Nome da sua empresa")
+                
+                cadastrar = st.form_submit_button("Cadastrar")
+                
+                if cadastrar:
+                    if not all([novo_nome, novo_usuario, nova_senha, confirmar_senha, nome_empresa]):
+                        st.warning("Todos os campos são obrigatórios.")
+                    elif nova_senha != confirmar_senha:
+                        st.error("As senhas não coincidem.")
+                    else:
+                        empresa_data = get_empresa_por_nome(nome_empresa.strip())
+                        if not empresa_data:
+                            st.error(f'A empresa "{nome_empresa}" não foi encontrada. Verifique o nome ou peça ao seu gerente para cadastrá-la.')
+                        else:
+                            id_empresa = empresa_data[0]['id_empresa']
+                            if adicionar_usuario(novo_nome, novo_usuario, nova_senha, id_empresa):
+                                st.success("Usuário cadastrado com sucesso! Por favor, faça o login.")
+                                st.session_state.auth_view = 'none'
+                                st.rerun()
+            if st.button("Voltar para o Login"):
+                st.session_state.auth_view = 'none'
+                st.rerun()
 
         st.stop()
 
