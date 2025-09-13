@@ -59,7 +59,7 @@ resource "oci_core_instance" "streamlit_vm" {
 
   # Chave SSH para acesso
   metadata = {
-    ssh_authorized_keys = file("C:\\Users\\cydyq\\Documents\\Python\\RPD\\venv\\ssh-key-2025-09-10.key.pub")
+    ssh_authorized_keys = file("ssh-key-2025-09-10.key.pub")
   }
 }
 
