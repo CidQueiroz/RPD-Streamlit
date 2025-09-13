@@ -1,6 +1,7 @@
 # Nome do nosso robô (workflow)
 name: Tentar Criar Instância OCI
-
+working-directory: Terraform_OCI
+  
 # Gatilhos: Quando o robô deve acordar e trabalhar
 on:
   # 1. De hora em hora, automaticamente
