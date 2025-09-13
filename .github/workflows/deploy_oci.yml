@@ -38,7 +38,14 @@ jobs:
           OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
           OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
           OCI_REGION: sa-saopaulo-1
+        
         run: |
+          # Decodifica a chave privada a partir do segredo e a salva em um arquivo temporário
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 --decode > oci_api_key_temp.pem
+
+          # Exporta o CAMINHO para o arquivo da chave. O provedor do Terraform usará esta variável.
+          export OCI_PRIVATE_KEY_PATH=$(pwd)/oci_api_key_temp.pem
+
           # Roda os comandos
           terraform init
           terraform apply -auto-approve
