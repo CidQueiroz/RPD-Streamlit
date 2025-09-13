@@ -7,10 +7,3 @@ __pycache__/
 sql_inserts_v2/
 antigo_rpd.py
 backup.sql
-tests/
-venv/
-exportacoes/
-/.terraform
-# Terraform state files
-*.tfstate
-*.tfstate.*
