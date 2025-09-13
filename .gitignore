@@ -14,4 +14,4 @@ exportacoes/
 # Terraform state files
 *.tfstate
 *.tfstate.*
-*.lock.hd
+*.lock.hcl

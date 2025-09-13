@@ -16,6 +16,11 @@ jobs:
     # O tipo de computador que o robô usará (um Ubuntu)
     runs-on: ubuntu-latest
 
+    # AQUI ESTÁ A CORREÇÃO: Define o diretório de trabalho padrão para todos os passos deste job
+    defaults:
+      run:
+        working-directory: Terraform_OCI
+
     steps:
       # Passo 1: O robô pega uma cópia das suas "plantas baixas" (o código do repo)
       - name: Checkout do código
