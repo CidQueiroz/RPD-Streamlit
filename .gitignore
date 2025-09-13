@@ -11,3 +11,6 @@ tests/
 venv/
 exportacoes/
 /.terraform
+# Terraform state files
+*.tfstate
+*.tfstate.*
