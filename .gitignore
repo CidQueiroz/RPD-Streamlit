@@ -1,6 +1,6 @@
 teste_rpd.py
 gemini.md
-.streamlit/secrets.toml
+.streamlit/
 __pycache__/
 /htmlcov
 .env
@@ -10,3 +10,4 @@ backup.sql
 tests/
 venv/
 exportacoes/
+/.terraform
