@@ -3,7 +3,7 @@ locals {
   tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaaqkgspzxljtpsdeyudwww6acp6foze7r6iuxyrns6yvt5hnr667ra"
   user_ocid        = "ocid1.user.oc1..aaaaaaaafedxtjtkevga56dibemmwfqhwm7wnngwdrbwucngyqwbjuafyssa"
   fingerprint      = "be:f4:b6:1d:14:e0:d0:27:61:ed:1b:f4:ac:1e:95:86"
-  private_key_path = "C:/Users/cydyq/.oci/oci_api_key.pem"
+  private_key_path = ".oci/oci_api_key.pem"
   region           = "sa-saopaulo-1"                
 }
 
