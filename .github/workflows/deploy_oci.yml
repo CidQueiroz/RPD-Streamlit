@@ -31,14 +31,23 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       # Passo 3: O robô executa os comandos do Terraform
+      # Passo 3: O robô executa os comandos do Terraform
       - name: Executar Terraform
-        env:
-          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
-          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
-          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
-          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
-          OCI_REGION: sa-saopaulo-1
         run: |
-          # Roda os comandos
+          # Primeiro, criamos o arquivo da chave a partir do secret
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 --decode > oci_api_key_temp.pem
+          chmod 600 oci_api_key_temp.pem
+
+          # Agora, com o arquivo criado, rodamos o Terraform
           terraform init
           terraform apply -auto-approve
+        env:
+          # Variáveis para autenticação do provedor OCI
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_REGION: sa-saolo-1
+          
+          # AQUI ESTÁ A LÓGICA CORRETA:
+          # Apontamos a variável de ambiente para o arquivo que acabamos de criar no passo 'run'
+          OCI_PRIVATE_KEY_PATH: "oci_api_key_temp.pem"
