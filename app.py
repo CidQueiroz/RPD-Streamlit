@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, date
 import pytz
 import streamlit_authenticator as stauth
-from desenvolvimento_pessoal import rebranding, protocolo_diario, rpd
+from desenvolvimento_pessoal import rebranding, cursos, protocolo_diario, rpd
 from core.database import fetch_data_as_dataframe, fetch_data, get_empresa_por_nome, execute_command
 from core.auth import inicializar_autenticador, adicionar_usuario
 from gestao.estoque import ler_estoque, adicionar_ou_atualizar_item, registrar_venda
@@ -192,7 +192,7 @@ def main():
             opcao = st.radio("Opções de Gestão:", opcoes_gestao, key="gestao_radio")
         
         elif modulo_selecionado == "Desenvolvimento Pessoal":
-            opcoes_dev = ["Responder RPD", "Visualizar Respostas", "AMV Tracker", "Protocolo Diário (POD)"]
+            opcoes_dev = ["Responder RPD", "Visualizar Respostas", "AMV Tracker", "Protocolo Diário (POD)", "Painel de Cursos"]
             opcao = st.radio("Opções de Desenvolvimento Pessoal:", opcoes_dev)
 
     # --- 4. RENDERIZAÇÃO DA PÁGINA SELECIONADA ---
@@ -382,6 +382,10 @@ def main():
 
     elif opcao == "AMV Tracker":
         rebranding.exibir_painel_rebranding(st.session_state['user_id'], username)
+
+    elif opcao == "Painel de Cursos":
+        # MODIFICAÇÃO 2: Chamar a nova função que usa o banco de dados
+        cursos.exibir_painel_cursos_sql(st.session_state['user_id'])
 
     elif opcao == "Protocolo Diário (POD)":
         protocolo_diario.exibir_protocolo_diario(st.session_state['user_id'], st.session_state['is_staff'])

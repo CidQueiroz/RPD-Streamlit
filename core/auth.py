@@ -53,7 +53,7 @@ def inicializar_autenticador():
             "usernames": {
                 linha_usuario['usuario']: {
                     "name": linha_usuario['nome'],
-                    "password": linha_usuario['senha'] # A senha já vem hasheada do banco
+                    "password": linha_usuario['senha']
                 }
                 for linha_usuario in usuarios_do_banco
             }
@@ -71,7 +71,6 @@ def inicializar_autenticador():
         st.error(f"Erro ao inicializar o sistema de autenticação: {e}")
         return None
 
-# Adicione o Google Analytics se desejar
 GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJG10ZYPBS"></script>
                     <script>
                         window.dataLayer = window.dataLayer || [];

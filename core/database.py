@@ -29,15 +29,30 @@ def get_db_engine():
 
 def _get_db_credentials():
     """Função interna para obter credenciais do Streamlit ou do .env"""
-    if IS_STREAMLIT_APP and 'mysql' in st.secrets:
-        return st.secrets["mysql"]
+
+    # print("=== DEBUG CREDENCIAIS ===")
+    # print(f"IS_STREAMLIT_APP: {IS_STREAMLIT_APP}")
+
+    # if IS_STREAMLIT_APP:
+    #     print(f"st.secrets keys: {list(st.secrets.keys())}")
+    #     print(f"'connections' in st.secrets: {'connections' in st.secrets}")
+    
+
+    if IS_STREAMLIT_APP and 'connections' in st.secrets:
+        creds = st.secrets["connections"]
+        # print(f"Usando st.secrets: {dict(creds)}")
+        return creds
+    
     else:
+        from dotenv import load_dotenv
+        load_dotenv()
         creds = {
             "host": os.getenv("DB_HOST"),
             "user": os.getenv("DB_USER"),
             "password": os.getenv("DB_PASS"),
             "database": os.getenv("DB_NAME")
         }
+        print(f"Usando .env: {creds}")
         return creds
 
 # New helper function for displaying errors

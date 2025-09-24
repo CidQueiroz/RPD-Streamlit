@@ -1,0 +1,46 @@
+name: Deploy to OCI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+
+      - name: Add remote host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Server
+        run: |
+          ssh ${{ secrets.OCI_USERNAME }}@${{ secrets.OCI_HOST }} '
+            set -e
+            
+            echo "--- Iniciando deploy ---"
+            
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            echo "1. Baixando código mais recente..."
+            git pull origin main
+            
+            echo "2. Instalando dependências..."
+            pip install -r requirements.txt
+            
+            echo "3. Reiniciando a aplicação..."
+            if pgrep -f "streamlit run app.py"; then
+                pkill -f "streamlit run app.py"
+                echo "Processo antigo do Streamlit finalizado."
+            fi
+                        
+            echo "--- Deploy finalizado com sucesso! ---"
+          '
