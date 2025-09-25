@@ -70,7 +70,11 @@ def construir_query_relatorio_vendas(filtro_opcao, data_selecionada, id_empresa,
 def main():
     """Função principal que executa a aplicação Streamlit."""
     # --- 1. AUTENTICAÇÃO ---
-    st.set_page_config(layout="wide")
+    st.set_page_config(
+        page_title="Gestão CDKTeck",
+        page_icon="logo.png",
+        layout="wide",
+    )
 
     authenticator = inicializar_autenticador()
     if not authenticator:

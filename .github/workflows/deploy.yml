@@ -31,23 +31,25 @@ jobs:
             cd ${{ secrets.PROJECT_PATH }}
             
             echo "1. Baixando código mais recente..."
+            CHANGED_FILES=$(git diff HEAD..origin/master --name-only)
             git pull origin master
 
-            echo "2. Verificando ambiente virtual..."
-            if [ ! -d ".venv" ]; then
-                echo "Criando ambiente virtual..."
-                python3 -m venv .venv
+            echo "2. Verificando se precisa atualizar dependências..."
+            if echo "$CHANGED_FILES" | grep -q "requirements.txt"; then
+                echo "Requirements.txt mudou, atualizando dependências..."
+                source .venv/bin/activate
+                pip install -r requirements.txt
+            else
+                echo "Nenhuma dependência nova detectada."
             fi
             
-            echo "2. Ativando ambiente virtual e instalando dependências..."
-            source .venv/bin/activate
-            pip install -r requirements.txt
-            
-            echo "3. Reiniciando a aplicação..."
-            if pgrep -f "streamlit run app.py"; then
-                pkill -f "streamlit run app.py"
-                echo "Processo antigo do Streamlit finalizado."
+            echo "3. Verificando se precisa reiniciar aplicação..."
+            if echo "$CHANGED_FILES" | grep -q "\.py$"; then
+                echo "Arquivos Python mudaram, recarregando aplicação..."
+          
+                sudo systemctl reload streamlit-app.service
+            else
+                echo "Apenas arquivos não-Python mudaram, não é necessário restart."
             fi
-                        
             echo "--- Deploy finalizado com sucesso! ---"
           '
