@@ -37,7 +37,8 @@ jobs:
             echo "1. Baixando código mais recente..."
             git pull origin master
             
-            echo "2. Instalando dependências..."
+            echo "2. Ativando ambiente virtual e instalando dependências..."
+            source .venv/bin/activate
             pip install -r requirements.txt
             
             echo "3. Reiniciando a aplicação..."
