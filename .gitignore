@@ -15,4 +15,8 @@ exportacoes/
 *.tfstate
 *.tfstate.*
 *.lock.hcl
-Terraform_OCI/.terraform/
+Terraform_OCI/.terraform/"nohup.out" 
+"Terraform_OCI/*.key" 
+"Terraform_OCI/*.pub" 
+"Terraform_OCI/*.pub" 
+"oci/" 
