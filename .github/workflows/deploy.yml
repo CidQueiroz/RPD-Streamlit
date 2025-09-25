@@ -29,6 +29,10 @@ jobs:
             echo "--- Iniciando deploy ---"
             
             cd ${{ secrets.PROJECT_PATH }}
+
+            echo "0. Limpando alterações locais não commitadas..."
+            git reset --hard HEAD
+            git clean -fd
             
             echo "1. Baixando código mais recente..."
             git pull origin master
