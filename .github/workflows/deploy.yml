@@ -29,13 +29,15 @@ jobs:
             echo "--- Iniciando deploy ---"
             
             cd ${{ secrets.PROJECT_PATH }}
-
-            echo "0. Limpando alterações locais não commitadas..."
-            git reset --hard HEAD
-            git clean -fd
             
             echo "1. Baixando código mais recente..."
             git pull origin master
+
+            echo "2. Verificando ambiente virtual..."
+            if [ ! -d ".venv" ]; then
+                echo "Criando ambiente virtual..."
+                python3 -m venv .venv
+            fi
             
             echo "2. Ativando ambiente virtual e instalando dependências..."
             source .venv/bin/activate
