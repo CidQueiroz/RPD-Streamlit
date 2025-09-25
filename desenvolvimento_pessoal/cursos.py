@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from core.database import fetch_data_as_dataframe, execute_command
+# --
 
 @st.cache_data(ttl=60)
 def ler_cursos_sql(user_id):
