@@ -55,4 +55,10 @@ def criar_recibo_venda(sale_details: dict) -> bytes:
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, f"Valor Total da Venda: R$ {sale_details.get('preco_total', 0):.2f}", 0, 1, 'R')
 
-    return bytes(pdf.output(dest='S'))
+    output = pdf.output(dest='S')
+    if isinstance(output, bytearray):
+        return bytes(output)
+    elif isinstance(output, str):
+        return output.encode('latin-1')
+    else:
+        return output
