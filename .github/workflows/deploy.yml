@@ -31,7 +31,7 @@ jobs:
             cd ${{ secrets.PROJECT_PATH }}
             
             echo "1. Baixando código mais recente..."
-            git pull origin main
+            git pull origin master
             
             echo "2. Instalando dependências..."
             pip install -r requirements.txt
