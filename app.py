@@ -19,8 +19,6 @@ GOOGLE_ANALYTICS = """<script async src="https://www.googletagmanager.com/gtag/j
                     </script>"""
 st.html(GOOGLE_ANALYTICS)
 
-# BRAZIL
-
 def get_user_details(username):
     """Busca detalhes de um usuário no banco de dados."""
     query = """
