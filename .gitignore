@@ -15,8 +15,18 @@ exportacoes/
 *.tfstate
 *.tfstate.*
 *.lock.hcl
-Terraform_OCI/.terraform/"nohup.out" 
-"Terraform_OCI/*.key" 
-"Terraform_OCI/*.pub" 
-"Terraform_OCI/*.pub" 
-"oci/" 
+Terraform_OCI/
+.oci/
+
+# Python specific ignores
+*.pyc
+*.log
+dist/
+build/
+*.egg-info/
+*.dist-info/
+
+# OS specific ignores
+.DS_Store
+Thumbs.db
+nohup.out

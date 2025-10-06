@@ -1,11 +1,6 @@
 streamlit
-pandas
 streamlit-authenticator
-mysql-connector-python
-python-dotenv
-plotly
-pytest
-pytest-cov
 SQLAlchemy
-fpdf2
-
+plotly
+fpdf
+mysql-connector-python

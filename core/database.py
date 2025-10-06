@@ -7,11 +7,15 @@ from sqlalchemy.exc import SQLAlchemyError
 # Tenta importar o Streamlit. Se falhar, sabemos que estamos em um script.
 IS_STREAMLIT_APP = False
 try:
-    import streamlit as st
+    # Check if streamlit is available and running
+    import streamlit.runtime.scriptrunner
+
     IS_STREAMLIT_APP = True
 except ImportError:
     from dotenv import load_dotenv
-    load_dotenv() # Carrega variáveis do arquivo .env
+
+    load_dotenv()  # Carrega variáveis do arquivo .env
+
 
 def get_db_engine():
     """Cria uma engine de conexão SQLAlchemy."""
@@ -27,50 +31,48 @@ def get_db_engine():
         _handle_error(f"Erro ao criar a engine de conexão com o banco de dados: {err}")
         return None
 
+
 def _get_db_credentials():
     """Função interna para obter credenciais do Streamlit ou do .env"""
 
-    # print("=== DEBUG CREDENCIAIS ===")
-    # print(f"IS_STREAMLIT_APP: {IS_STREAMLIT_APP}")
-
-    # if IS_STREAMLIT_APP:
-    #     print(f"st.secrets keys: {list(st.secrets.keys())}")
-    #     print(f"'connections' in st.secrets: {'connections' in st.secrets}")
-    
-
-    if IS_STREAMLIT_APP and 'connections' in st.secrets:
+    if IS_STREAMLIT_APP and "connections" in st.secrets:
         creds = st.secrets["connections"]
-        # print(f"Usando st.secrets: {dict(creds)}")
         return creds
-    
+
     else:
         from dotenv import load_dotenv
+
         load_dotenv()
         creds = {
             "host": os.getenv("DB_HOST"),
             "user": os.getenv("DB_USER"),
             "password": os.getenv("DB_PASS"),
-            "database": os.getenv("DB_NAME")
+            "database": os.getenv("DB_NAME"),
         }
         print(f"Usando .env: {creds}")
         return creds
+
 
 # New helper function for displaying errors
 def _display_error(message):
     """Mostra o erro no Streamlit ou imprime no console."""
     try:
-        import streamlit as st
         from streamlit.runtime.scriptrunner import get_script_run_ctx
+
         if get_script_run_ctx():
             st.error(message)
         else:
             print(f"ERRO: {message}")
     except (ImportError, AttributeError):
-        print(f"ERRO: {message}") # Fallback if Streamlit is not available or context is missing
+        print(
+            f"ERRO: {message}"
+        )  # Fallback if Streamlit is not available or context is missing
+
 
 def _handle_error(message):
     """Mostra o erro no Streamlit ou imprime no console."""
-    _display_error(message) # Now just calls the helper
+    _display_error(message)  # Now just calls the helper
+
 
 def fetch_data(query, params=None):
     """Lê dados e retorna uma lista de dicionários."""
@@ -84,6 +86,7 @@ def fetch_data(query, params=None):
             _handle_error(f"Erro ao executar a consulta: {err}")
     return None
 
+
 def execute_command(query, params=None):
     """Executa comandos (INSERT, UPDATE, DELETE)."""
     engine = get_db_engine()
@@ -94,7 +97,7 @@ def execute_command(query, params=None):
         try:
             result = conn.execute(text(query), params or {})
             trans.commit()
-            return result.rowcount # Retorna o número de linhas afetadas
+            return result.rowcount  # Retorna o número de linhas afetadas
         except SQLAlchemyError as err:
             if conn and trans:
                 trans.rollback()
@@ -104,6 +107,7 @@ def execute_command(query, params=None):
             if conn:
                 conn.close()
     return None
+
 
 def fetch_data_as_dataframe(query, params=None):
     """Busca dados e retorna um DataFrame do Pandas."""
@@ -115,12 +119,20 @@ def fetch_data_as_dataframe(query, params=None):
             _handle_error(f"Erro ao buscar dados como DataFrame: {err}")
     return pd.DataFrame()
 
+
 def get_empresas():
     """Busca todas as empresas para exibição."""
-    return fetch_data("SELECT id_empresa, nome_empresa FROM empresas ORDER BY nome_empresa")
+    return fetch_data(
+        "SELECT id_empresa, nome_empresa FROM empresas ORDER BY nome_empresa"
+    )
+
 
 def get_empresa_por_nome(nome_empresa):
     """Busca uma empresa pelo nome e retorna seus dados."""
-    return fetch_data("SELECT id_empresa FROM empresas WHERE nome_empresa = :nome", {"nome": nome_empresa})
+    return fetch_data(
+        "SELECT id_empresa FROM empresas WHERE nome_empresa = :nome",
+        {"nome": nome_empresa},
+    )
+
 
 # Funções de debug permanecem as mesmas...

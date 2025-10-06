@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
-from core.database import fetch_data, fetch_data_as_dataframe, execute_command, _display_error
+from core.database import (
+    fetch_data,
+    fetch_data_as_dataframe,
+    execute_command,
+    _display_error,
+)
+
 
 def ler_estoque(id_empresa: int):
     """Lê os itens de estoque de uma empresa específica."""
@@ -11,7 +17,10 @@ def ler_estoque(id_empresa: int):
         _display_error(f"Erro ao ler estoque: {e}")
         return pd.DataFrame()
 
-def adicionar_ou_atualizar_item(item: str, variacao: str, quantidade: int, preco: float, id_empresa: int):
+
+def adicionar_ou_atualizar_item(
+    item: str, variacao: str, quantidade: int, preco: float, id_empresa: int
+):
     """Adiciona ou atualiza um item no estoque de uma empresa específica."""
     try:
         sql_check = "SELECT id_item, quantidade FROM estoque WHERE item = :item AND variacao = :variacao AND empresa_fk = :id_empresa"
@@ -20,17 +29,29 @@ def adicionar_ou_atualizar_item(item: str, variacao: str, quantidade: int, preco
 
         if result:  # Item existe, ATUALIZA
             item_existente = result[0]
-            nova_quantidade = item_existente['quantidade'] + quantidade
+            nova_quantidade = item_existente["quantidade"] + quantidade
             sql_update = "UPDATE estoque SET quantidade = :quantidade WHERE id_item = :id_item AND empresa_fk = :id_empresa"
-            params_update = {"quantidade": nova_quantidade, "id_item": item_existente['id_item'], "id_empresa": id_empresa}
+            params_update = {
+                "quantidade": nova_quantidade,
+                "id_item": item_existente["id_item"],
+                "id_empresa": id_empresa,
+            }
             execute_command(sql_update, params_update)
-            st.success(f'Estoque de "{item} - {variacao}" atualizado para {nova_quantidade}!')
+            st.success(
+                f'Estoque de "{item} - {variacao}" atualizado para {nova_quantidade}!'
+            )
         else:  # Item não existe, INSERE
             if preco is None:
                 _display_error("O preço é obrigatório para adicionar um novo item.")
                 return False
             sql_insert = "INSERT INTO estoque (item, variacao, quantidade, preco, empresa_fk) VALUES (:item, :variacao, :quantidade, :preco, :id_empresa)"
-            params_insert = {"item": item, "variacao": variacao, "quantidade": quantidade, "preco": preco, "id_empresa": id_empresa}
+            params_insert = {
+                "item": item,
+                "variacao": variacao,
+                "quantidade": quantidade,
+                "preco": preco,
+                "id_empresa": id_empresa,
+            }
             execute_command(sql_insert, params_insert)
             st.success(f'Item "{item} - {variacao}" adicionado ao estoque!')
         return True
@@ -38,16 +59,23 @@ def adicionar_ou_atualizar_item(item: str, variacao: str, quantidade: int, preco
         _display_error(f"Erro ao adicionar ou atualizar item: {e}")
         return False
 
-def registrar_venda(data_venda: str, estoque_id: int, quantidade: int, usuario_id: int, id_empresa: int):
+
+def registrar_venda(
+    data_venda: str, estoque_id: int, quantidade: int, usuario_id: int, id_empresa: int
+):
     """Registra uma nova venda para uma empresa específica."""
     try:
         # 1. Buscar o preço unitário do item para garantir consistência
-        produto_info = fetch_data("SELECT preco FROM estoque WHERE id_item = :id AND empresa_fk = :id_empresa", 
-                                  params={"id": estoque_id, "id_empresa": id_empresa})
+        produto_info = fetch_data(
+            "SELECT preco FROM estoque WHERE id_item = :id AND empresa_fk = :id_empresa",
+            params={"id": estoque_id, "id_empresa": id_empresa},
+        )
         if not produto_info:
-            _display_error(f"Não foi possível encontrar o item de estoque com ID {estoque_id} nesta empresa.")
+            _display_error(
+                f"Não foi possível encontrar o item de estoque com ID {estoque_id} nesta empresa."
+            )
             return False
-        preco_unitario = produto_info[0]['preco']
+        preco_unitario = produto_info[0]["preco"]
 
         # 2. Inserir o registro da venda
         sql_venda = """
@@ -60,9 +88,9 @@ def registrar_venda(data_venda: str, estoque_id: int, quantidade: int, usuario_i
             "quantidade": quantidade,
             "preco_unitario": preco_unitario,
             "vendedor_fk": usuario_id,
-            "id_empresa": id_empresa
+            "id_empresa": id_empresa,
         }
-        
+
         rows_affected_venda = execute_command(sql_venda, params_venda)
         if not rows_affected_venda:
             _display_error("A inserção da venda falhou.")
@@ -70,9 +98,13 @@ def registrar_venda(data_venda: str, estoque_id: int, quantidade: int, usuario_i
 
         # 3. Atualizar a quantidade no estoque
         sql_estoque = "UPDATE estoque SET quantidade = quantidade - :quantidade WHERE id_item = :id_item AND empresa_fk = :id_empresa"
-        params_estoque = {"quantidade": quantidade, "id_item": estoque_id, "id_empresa": id_empresa}
+        params_estoque = {
+            "quantidade": quantidade,
+            "id_item": estoque_id,
+            "id_empresa": id_empresa,
+        }
         execute_command(sql_estoque, params_estoque)
-        
+
         # A mensagem de sucesso agora é tratada pela interface principal
         # st.success(f"Venda registrada com sucesso! Total: R$ {valor_total:.2f}")
         return True
