@@ -10,12 +10,13 @@ backup.sql
 tests/
 .venv/
 exportacoes/
-/.terraform
+
 # Terraform state files
+/.terraform
 *.tfstate
 *.tfstate.*
 *.lock.hcl
-Terraform_OCI/
+/Terraform_OCI/
 .oci/
 
 # Python specific ignores

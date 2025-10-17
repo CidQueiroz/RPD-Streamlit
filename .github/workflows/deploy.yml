@@ -1,9 +1,8 @@
 name: Deploy to OCI
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
   deploy:
@@ -26,16 +25,17 @@ jobs:
           ssh ${{ secrets.OCI_USERNAME }}@${{ secrets.OCI_HOST }} '
             set -e
             
-            echo "--- Iniciando deploy ---"
+            echo "--- Iniciando deploy da release ${{ github.event.release.tag_name }} ---"
             
             cd ${{ secrets.PROJECT_PATH }}
             
-            echo "1. Baixando código mais recente..."
-            CHANGED_FILES=$(git diff HEAD..origin/master --name-only)
-            git pull origin master
+            echo "1. Baixando código da nova release..."
+            git fetch origin
+            git checkout ${{ github.event.release.tag_name }}
 
             echo "2. Verificando se precisa atualizar dependências..."
-            if echo "$CHANGED_FILES" | grep -q "requirements.txt"; then
+            # Compara o requirements.txt atual com o da release anterior
+            if git diff ${{ github.event.release.tag_name }}~1 ${{ github.event.release.tag_name }} -- requirements.txt | grep -q .; then
                 echo "Requirements.txt mudou, atualizando dependências..."
                 source .venv/bin/activate
                 pip install -r requirements.txt
@@ -43,13 +43,8 @@ jobs:
                 echo "Nenhuma dependência nova detectada."
             fi
             
-            echo "3. Verificando se precisa reiniciar aplicação..."
-            if echo "$CHANGED_FILES" | grep -q "\.py$"; then
-                echo "Arquivos Python mudaram, recarregando aplicação..."
-          
-                sudo systemctl reload streamlit-app.service
-            else
-                echo "Apenas arquivos não-Python mudaram, não é necessário restart."
-            fi
+            echo "3. Reiniciando aplicação..."
+            sudo systemctl reload streamlit-app.service
+            
             echo "--- Deploy finalizado com sucesso! ---"
           '
