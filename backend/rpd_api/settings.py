@@ -17,10 +17,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Initialize Oracle Client
-WALLET_DIR = os.path.join(BASE_DIR, 'oracle_wallet')
-if os.path.exists(WALLET_DIR):
-    oracledb.init_oracle_client(lib_dir='/opt/oracle/instantclient_19_28', config_dir=WALLET_DIR)
+
 
 
 # Quick-start development settings - unsuitable for production
