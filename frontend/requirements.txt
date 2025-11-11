@@ -1,6 +1,0 @@
-streamlit
-streamlit-authenticator
-SQLAlchemy
-plotly
-fpdf
-mysql-connector-python
