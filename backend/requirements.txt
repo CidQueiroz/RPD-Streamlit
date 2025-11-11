@@ -1,4 +1,6 @@
 django
 djangorestframework
-gunicorn
-oracledb
+djangorestframework-simplejwt
+django-cors-headers
+mysqlclient
+python-dotenv

@@ -21,30 +21,33 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to Server
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
           ssh ${{ secrets.OCI_USERNAME }}@${{ secrets.OCI_HOST }} '
             set -e
-            
             echo "--- Iniciando deploy da release ${{ github.event.release.tag_name }} ---"
-            
             cd ${{ secrets.PROJECT_PATH }}
             
             echo "1. Baixando código da nova release..."
             git fetch origin
             git checkout ${{ github.event.release.tag_name }}
 
-            echo "2. Verificando se precisa atualizar dependências..."
-            # Compara o requirements.txt atual com o da release anterior
-            if git diff ${{ github.event.release.tag_name }}~1 ${{ github.event.release.tag_name }} -- requirements.txt | grep -q .; then
-                echo "Requirements.txt mudou, atualizando dependências..."
-                source .venv/bin/activate
-                pip install -r requirements.txt
-            else
-                echo "Nenhuma dependência nova detectada."
-            fi
+            echo "2. Criando arquivo .env para o Docker Compose..."
+            echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" > .env
+            echo "MYSQL_DATABASE=${MYSQL_DATABASE}" >> .env
+            echo "MYSQL_USER=${MYSQL_USER}" >> .env
+            echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}" >> .env
             
-            echo "3. Reiniciando aplicação..."
-            sudo systemctl reload streamlit-app.service
+            echo "3. Construindo e iniciando os containers com Docker Compose..."
+            docker compose down
+            docker compose up --build -d
+            
+            echo "4. Limpando imagens Docker não utilizadas..."
+            docker image prune -f
             
             echo "--- Deploy finalizado com sucesso! ---"
           '
