@@ -1,11 +1,7 @@
 name: Deploy Backend to OCI Production
 
 on:
-  push:
-    branches:
-      - main # Acionado por push na branch 'main'
-    paths:
-      - 'backend/**'
+  workflow_dispatch: # Permite acionamento manual
 
 jobs:
   deploy:
