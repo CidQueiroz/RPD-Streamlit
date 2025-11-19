@@ -37,6 +37,17 @@ jobs:
             echo "1. Baixando código da nova versão..."
             git fetch origin --tags
             git checkout ${{ github.event.release.tag_name }}
+            
+            echo "--- DIAGNOSTICS START ---"
+            echo ">>> Localização atual (pwd):"
+            pwd
+            echo ">>> Status do Git:"
+            git status
+            echo ">>> Conteúdo da pasta 'backend':"
+            ls -lR backend/
+            echo ">>> Conteúdo do docker-compose.yml:"
+            cat docker-compose.yml
+            echo "--- DIAGNOSTICS END ---"
 
             echo "2. Criando arquivo .env para o Docker Compose..."
             echo "ORACLE_USER=${ORACLE_USER}" > .env
