@@ -1,21 +1,8 @@
-version: '3.8'
-
 services:
-  db:
-    image: mysql:8.0
-    container_name: gestaorpd_db
-    environment:
-      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
-      MYSQL_DATABASE: '${MYSQL_DATABASE}'
-    volumes:
-      - mysql_data:/var/lib/mysql
+  backend:
+    build: ./backend
+    container_name: gestaorpd_backend
+    env_file:
+      - .env
     ports:
-      - "3307:3306" # Use a different port if 3306 is already in use by another MySQL instance
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
-      start_period: 10s
-
-volumes:
-  mysql_data:
+      - "8000:8000"
