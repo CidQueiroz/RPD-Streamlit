@@ -1,39 +1,61 @@
 name: Deploy Backend to OCI Production
 
 on:
-  workflow_dispatch: # Permite acionamento manual
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The git tag to deploy (e.g., v1.2.3)'
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 1. Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: 2. Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          python-version: '3.11'
+          ssh-private-key: ${{ secrets.OCI_PRODUCTION_SSH_KEY }}
 
-      - name: 3. Install Dependencies
+      - name: Add remote host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.OCI_PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Production Server
+        env:
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          ORACLE_PASSWORD: ${{ secrets.ORACLE_PASSWORD }}
+          ORACLE_DSN: "cdkteckdb_medium" # Or use a secret: ${{ secrets.ORACLE_DSN }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          ALLOWED_HOSTS: ${{ secrets.OCI_PRODUCTION_HOST }}
+          CORS_ALLOWED_ORIGINS: "https://gestaorpd.cdkteck.com.br,https://gestaorpd.web.app"
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          ssh ${{ secrets.OCI_PRODUCTION_USERNAME }}@${{ secrets.OCI_PRODUCTION_HOST }} '
+            set -e
+            echo "--- Iniciando deploy da versão ${{ github.event.inputs.version }} para PRODUÇÃO ---"
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            echo "1. Baixando código da nova versão..."
+            git fetch origin --tags
+            git checkout ${{ github.event.inputs.version }}
 
-      - name: 4. Deploy to OCI Production VM via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.OCI_PRODUCTION_VM_HOST }}
-          username: ${{ secrets.OCI_PRODUCTION_VM_USERNAME }}
-          key: ${{ secrets.OCI_PRODUCTION_VM_SSH_KEY }}
-          script: |
-            # O script de deploy permanece o mesmo, mas agora roda na VM de produção
-            cd /path/to/your/project/on/vm 
-            source /path/to/your/venv/bin/activate
-            git checkout main # Garante que a VM está na branch correta
-            git pull origin main
-            pip install -r backend/requirements.txt
-            python backend/manage.py migrate
-            python backend/manage.py collectstatic --noinput
-            sudo systemctl restart gunicorn 
-            echo "Deploy em Produção finalizado com sucesso!"
+            echo "2. Criando arquivo .env para o Docker Compose..."
+            echo "ORACLE_USER=${ORACLE_USER}" > .env
+            echo "ORACLE_PASSWORD=${ORACLE_PASSWORD}" >> .env
+            echo "ORACLE_DSN=${ORACLE_DSN}" >> .env
+            echo "SECRET_KEY=${SECRET_KEY}" >> .env
+            echo "DEBUG=False" >> .env
+            echo "ALLOWED_HOSTS=${ALLOWED_HOSTS}" >> .env
+            echo "CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}" >> .env
+            
+            echo "3. Construindo e iniciando os containers com Docker Compose..."
+            docker compose down
+            docker compose up --build -d
+            
+            echo "4. Limpando imagens Docker não utilizadas..."
+            docker image prune -f
+            
+            echo "--- Deploy de PRODUÇÃO finalizado com sucesso! ---"
+          '

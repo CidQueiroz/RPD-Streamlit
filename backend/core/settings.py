@@ -25,12 +25,13 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l&*z@zncfrc+kz_i_-q07g8dcrl35_234r9yk1k**&k7ha&(tk'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['192.168.0.101', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS will be a comma-separated string in the env
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 
@@ -80,23 +81,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3002",
-    "http://127.0.0.1:3002",
-    "http://localhost:3003",
-    "http://127.0.0.1:3003",
-]
+# CORS_ALLOWED_ORIGINS will be a comma-separated string in the env
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3002,http://127.0.0.1:3002').split(',')
 
-# Configuração do Banco de Dados (MySQL para Desenvolvimento)
+# Configuração do Banco de Dados (Oracle Autonomous Database)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'gestaorpd_django'), # Changed DB name
-        'USER': os.environ.get('MYSQL_USER', 'root'),
-        'PASSWORD': os.environ.get('MYSQL_ROOT_PASSWORD', 'rootpassword'),
-        'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
-        'PORT': '3307',
-}}
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': os.environ.get('ORACLE_DSN', 'cdkteckdb_medium'),
+        'USER': os.environ.get('ORACLE_USER'),
+        'PASSWORD': os.environ.get('ORACLE_PASSWORD'),
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

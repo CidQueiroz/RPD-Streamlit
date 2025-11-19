@@ -1,45 +1,58 @@
 name: Deploy Backend to OCI Staging
 
 on:
-  push:
-    branches:
-      - develop # Acionado por push na branch 'develop'
-    paths:
-      - 'backend/**'
+  release:
+    types: [published]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 1. Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: develop # Garante que estamos usando o código da branch 'develop'
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: 2. Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          python-version: '3.11'
+          ssh-private-key: ${{ secrets.OCI_STAGING_SSH_KEY }}
 
-      - name: 3. Install Dependencies
+      - name: Add remote host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.OCI_STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Staging Server
+        env:
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          ORACLE_PASSWORD: ${{ secrets.ORACLE_PASSWORD }}
+          ORACLE_DSN: "cdkteckdb_medium" # Or use a secret: ${{ secrets.ORACLE_DSN }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          ALLOWED_HOSTS: ${{ secrets.OCI_STAGING_HOST }}
+          CORS_ALLOWED_ORIGINS: "https://gestaorpd.web.app"
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          ssh ${{ secrets.OCI_STAGING_USERNAME }}@${{ secrets.OCI_STAGING_HOST }} '
+            set -e
+            echo "--- Iniciando deploy da release ${{ github.event.release.tag_name }} para STAGING ---"
+            cd ${{ secrets.PROJECT_PATH_STAGING }}
+            
+            echo "1. Baixando código da nova versão..."
+            git fetch origin --tags
+            git checkout ${{ github.event.release.tag_name }}
 
-      - name: 4. Deploy to OCI Staging VM via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.OCI_STAGING_VM_HOST }}
-          username: ${{ secrets.OCI_STAGING_VM_USERNAME }}
-          key: ${{ secrets.OCI_STAGING_VM_SSH_KEY }}
-          script: |
-            # O script de deploy permanece o mesmo, mas agora roda na VM de staging
-            cd /path/to/your/project/on/vm 
-            source /path/to/your/venv/bin/activate
-            git checkout develop # Garante que a VM está na branch correta
-            git pull origin develop
-            pip install -r backend/requirements.txt
-            python backend/manage.py migrate
-            python backend/manage.py collectstatic --noinput
-            sudo systemctl restart gunicorn 
-            echo "Deploy em Staging finalizado com sucesso!"
+            echo "2. Criando arquivo .env para o Docker Compose..."
+            echo "ORACLE_USER=${ORACLE_USER}" > .env
+            echo "ORACLE_PASSWORD=${ORACLE_PASSWORD}" >> .env
+            echo "ORACLE_DSN=${ORACLE_DSN}" >> .env
+            echo "SECRET_KEY=${SECRET_KEY}" >> .env
+            echo "DEBUG=False" >> .env
+            echo "ALLOWED_HOSTS=${ALLOWED_HOSTS}" >> .env
+            echo "CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}" >> .env
+            
+            echo "3. Construindo e iniciando os containers com Docker Compose..."
+            docker compose down
+            docker compose up --build -d
+            
+            echo "4. Limpando imagens Docker não utilizadas..."
+            docker image prune -f
+            
+            echo "--- Deploy de STAGING finalizado com sucesso! ---"
+          '

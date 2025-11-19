@@ -1,0 +1,12 @@
+cdkteckdb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-saopaulo-1.oraclecloud.com))(connect_data=(service_name=g3a346a460195dc_cdkteckdb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cdkteckdb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-saopaulo-1.oraclecloud.com))(connect_data=(service_name=g3a346a460195dc_cdkteckdb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cdkteckdb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-saopaulo-1.oraclecloud.com))(connect_data=(service_name=g3a346a460195dc_cdkteckdb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cdkteckdb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-saopaulo-1.oraclecloud.com))(connect_data=(service_name=g3a346a460195dc_cdkteckdb_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cdkteckdb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-saopaulo-1.oraclecloud.com))(connect_data=(service_name=g3a346a460195dc_cdkteckdb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
