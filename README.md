@@ -1,76 +1,116 @@
-# Gestão RPD
+<div align="center">
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![GitHub repo size](https://img.shields.io/github/repo-size/CidQueiroz/GestaoRPD)
-![GitHub last commit](https://img.shields.io/github/last-commit/CidQueiroz/GestaoRPD)
-![GitHub stars](https://img.shields.io/github/stars/CidQueiroz/GestaoRPD?style=social)
+# 📊 Gestão RPD
+### Sua Plataforma Integrada de Produtividade e Gestão Pessoal
 
-O Gestão RPD é uma aplicação web para desenvolvimento pessoal e gestão, incluindo ferramentas como Registro de Pensamentos Disfuncionais (RPD), controle de hábitos e um sistema simplificado de gestão de vendas e estoque.
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-## ✨ Features
+[**Portfólio CDKTeck**](https://www.cdkteck.com.br) | [**LinkedIn do Autor**](https://www.linkedin.com/in/ciddy-queiroz/)
 
-*   **Registro de Pensamentos Disfuncionais (RPD):** Uma ferramenta para ajudar os usuários a identificar e contestar pensamentos negativos.
-*   **Controle de Hábitos:** Acompanhe e construa hábitos positivos.
-*   **Gestão de Vendas e Estoque:** Um sistema simplificado para pequenas empresas.
-*   **Dashboard Interativo:** Visualize seus dados com gráficos e relatórios.
+<br />
+</div>
 
-## 🚀 Tecnologias Utilizadas
+---
 
-*   **Frontend:** React, Vite, Chart.js
-*   **Backend:** Django, Django REST Framework
-*   **Database:** Oracle
-*   **Deployment:** Docker, Firebase
+## 🚀 Visão Geral
 
-## Getting Started
+O **Gestão RPD** é uma aplicação web robusta desenvolvida para otimizar a produtividade pessoal e empresarial. A plataforma integra ferramentas essenciais como o Registro de Pensamentos Disfuncionais (RPD) para bem-estar mental, um eficiente sistema de controle de hábitos, e um módulo simplificado para gestão de vendas e estoque, ideal para pequenas e médias empresas.
+
+---
+
+## 🧠 Arquitetura & Tecnologias
+
+Este projeto é construído com uma arquitetura moderna e escalável, focada em performance e manutenibilidade.
+
+| Camada | Tecnologias | Descrição |
+| :--- | :--- | :--- |
+| **Frontend** | React.js, Vite, Chart.js, Axios | Interface de usuário dinâmica e responsiva para uma experiência fluida. |
+| **Backend** | Python, Django REST Framework, djangorestframework-simplejwt, django-cors-headers, gunicorn | API robusta e segura para manipulação de dados e lógica de negócio. |
+| **Database** | Oracle, oracledb | Banco de dados relacional para armazenamento seguro e eficiente das informações. |
+| **Deployment** | Docker, Firebase | Containerização para ambientes consistentes e hospedagem ágil e escalável. |
+
+---
+
+## ✨ Funcionalidades Chave
+
+- [x] **Registro de Pensamentos Disfuncionais (RPD):** Ferramenta interativa para auxiliar na identificação e reestruturação cognitiva de pensamentos negativos.
+- [x] **Controle de Hábitos:** Módulo intuitivo para acompanhamento e construção de hábitos diários, com visualização de progresso.
+- [x] **Gestão Simplificada de Vendas e Estoque:** Funcionalidades essenciais para controle de produtos, transações e inventário, ideal para otimização de pequenos negócios.
+- [x] **Dashboard Interativo:** Visualização clara e concisa de dados de produtividade e vendas através de gráficos e relatórios.
+
+---
+
+## 🛠️ Como Executar Localmente
 
 ### Pré-requisitos
+* Python 3.10+
+* Node.js 18+
+* Docker
 
-*   Node.js
-*   Python
-*   Docker
+### 1. Clone o repositório
 
-### Instalação
+```bash
+git clone https://github.com/CidQueiroz/GestaoRPD.git
+cd GestaoRPD
+```
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/CidQueiroz/GestaoRPD.git
-    ```
+### 2. Configuração do Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# .\venv\Scripts\activate # Windows
 
-2.  **Navegue até o diretório do projeto:**
-    ```bash
-    cd GestaoRPD
-    ```
+pip install -r requirements.txt
 
-3.  **Instale as dependências do frontend:**
-    ```bash
-    npm install
-    ```
+# Configure as variáveis de ambiente (.env)
+# DATABASE_URL=... (Se estiver usando um banco de dados externo)
 
-4.  **Instale as dependências do backend:**
-    ```bash
-    pip install -r backend/requirements.txt
-    ```
+python manage.py migrate
+python manage.py runserver
+```
 
-### Executando a Aplicação
+### 3. Configuração do Frontend
 
-1.  **Inicie o backend:**
-    ```bash
-    python backend/manage.py runserver
-    ```
-
-2.  **Inicie o frontend:**
-    ```bash
-    npm run dev
-    ```
+```bash
+cd ../ # Voltar para a raiz do projeto
+npm install
+npm run dev
+```
 
 A aplicação estará disponível em `http://localhost:3000`.
+
+---
+
+## 🛣️ Roadmap
+
+- [ ] **Integração com Google Sheets:** Sincronização de dados de vendas/estoque com planilhas Google.
+- [ ] **Módulo Financeiro:** Adição de controle de despesas e receitas pessoais/empresariais.
+- [ ] **Gamificação:** Implementação de elementos de gamificação para o controle de hábitos e RPD.
+- [ ] **Deploy Automatizado (CI/CD):** Configuração de GitHub Actions para deploy contínuo na OCI.
+
+---
 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## 📫 Contato
+---
 
-Cidirclay Queiroz - [LinkedIn](https://www.linkedin.com/in/ciddy-queiroz/)
-Site Pessoal - [Site](https://www.cdkteck.com.br)
-Email para Cidirclay Queiroz - [E-mail](mailto:cydy.queiroz@cdkteck.com.br)
+## 👨‍💻 Autor
+
+<img src="https://github.com/CidQueiroz.png" width="100px;" alt="Foto de Cidirclay"/>
+**Cidirclay Queiroz** <br>
+Solutions Architect AI | MLOps Engineer | OCI Specialist
+
+[LinkedIn](https://www.linkedin.com/in/ciddy-queiroz/) | [Website](https://cdkteck.com.br/) | [Email](mailto:cydy.queiroz@cdkteck.com.br) | [Instagram](https://www.instagram.com/ciddyqueiroz/)
+
+Especialista em transformar problemas de negócio complexos em soluções escaláveis na nuvem. Focado em Arquitetura Multi-Cloud e Engenharia de IA Generativa.
+
+---
+
+<div align="center"> <sub>Built with ❤️ and paixão</sub> </div>
