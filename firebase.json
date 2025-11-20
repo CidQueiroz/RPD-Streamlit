@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "gestaorpd",
+    "target": "gestaorpd-app",
     "public": "dist",
     "ignore": [
       "firebase.json",

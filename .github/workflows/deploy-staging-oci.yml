@@ -1,16 +1,24 @@
 name: Deploy Backend to OCI Staging
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
 
 jobs:
   deploy:
+    # Only run this job if the Release workflow was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
+      # This step is needed to get the code, as workflow_run runs in a different context
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Checkout the same commit that the "Release" workflow ran on
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.9.0
@@ -29,20 +37,26 @@ jobs:
           ALLOWED_HOSTS: ${{ secrets.OCI_STAGING_HOST }}
           CORS_ALLOWED_ORIGINS: "https://gestaorpd.web.app"
         run: |
+          # We need to copy the source code to the VM
+          echo "--- Copying source code to staging VM ---"
+          scp -r $GITHUB_WORKSPACE ${{ secrets.OCI_STAGING_USERNAME }}@${{ secrets.OCI_STAGING_HOST }}:${{ secrets.PROJECT_PATH_STAGING }}_temp
+
           ssh ${{ secrets.OCI_STAGING_USERNAME }}@${{ secrets.OCI_STAGING_HOST }} '
             set -e
-            echo "--- Iniciando deploy da release ${{ github.event.release.tag_name }} para STAGING ---"
+            echo "--- Iniciando deploy para STAGING ---"
+            
+            # Move the new code into the project path, overwriting old files
+            # This is safer than doing a git pull in the project directory
+            # First, remove the old directory if it exists
+            if [ -d "${{ secrets.PROJECT_PATH_STAGING }}" ]; then
+              rm -rf ${{ secrets.PROJECT_PATH_STAGING }}
+            fi
+            mv ${{ secrets.PROJECT_PATH_STAGING }}_temp ${{ secrets.PROJECT_PATH_STAGING }}
             cd ${{ secrets.PROJECT_PATH_STAGING }}
-            
-            echo "1. Baixando código da nova versão..."
-            git fetch origin --tags
-            git checkout ${{ github.event.release.tag_name }}
-            
+
             echo "--- DIAGNOSTICS START ---"
             echo ">>> Localização atual (pwd):"
             pwd
-            echo ">>> Status do Git:"
-            git status
             echo ">>> Conteúdo da pasta 'backend':"
             ls -lR backend/
             echo ">>> Conteúdo do docker-compose.yml:"
