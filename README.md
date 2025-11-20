@@ -37,10 +37,16 @@ Este projeto é construído com uma arquitetura moderna e escalável, focada em 
 
 ## ✨ Funcionalidades Chave
 
-- [x] **Registro de Pensamentos Disfuncionais (RPD):** Ferramenta interativa para auxiliar na identificação e reestruturação cognitiva de pensamentos negativos.
-- [x] **Controle de Hábitos:** Módulo intuitivo para acompanhamento e construção de hábitos diários, com visualização de progresso.
-- [x] **Gestão Simplificada de Vendas e Estoque:** Funcionalidades essenciais para controle de produtos, transações e inventário, ideal para otimização de pequenos negócios.
-- [x] **Dashboard Interativo:** Visualização clara e concisa de dados de produtividade e vendas através de gráficos e relatórios.
+- 📝 **Registro de Pensamentos Disfuncionais (RPD):** Ferramenta interativa para auxiliar na identificação e reestruturação cognitiva de pensamentos negativos.
+- ✅ **Controle de Hábitos:** Módulo intuitivo para acompanhamento e construção de hábitos diários, com visualização de progresso.
+- 📦 **Gestão Simplificada de Vendas e Estoque:** Funcionalidades essenciais para controle de produtos, transações e inventário, ideal para otimização de pequenos negócios.
+- 📈 **Dashboard Interativo:** Visualização clara e concisa de dados de produtividade e vendas através de gráficos e relatórios.
+- 🧠 **RAG Inteligente:** Sistema de busca semântica com embeddings.
+- 🚀 **Groq AI:** Respostas ultra-rápidas com Llama 3.
+- 🌐 **Google AI:** Fallback automático com Gemini 1.5.
+- 🔐 **Segurança:** Autenticação Firebase + dados protegidos.
+- 🐳 **Containerizado:** Ambiente de desenvolvimento e produção 100% em Docker.
+- 🤖 **Versionamento Automático:** Releases e changelogs automáticos com semantic-release.
 
 ---
 
